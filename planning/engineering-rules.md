@@ -32,11 +32,13 @@ Most problems here are textbook problems with known solutions. Follow this table
 | Area | Rule |
 |---|---|
 | Project scaffolding, styling, theming, state, validation, graph canvas, auto layout, tree rendering, regex parsing | **Use the libraries listed in `design.md` section 2.** Do not hand-roll these. |
-| Core automata algorithms (simulation, epsilon-closure, subset construction, partition minimization, Thompson construction, Arden elimination, transducers, tokenizer DFA, parser) | **Write them ourselves** following the named textbook algorithm, because libraries return answers but not the intermediate steps we must display. |
+| Core automata algorithms (simulation, epsilon-closure, subset construction, partition minimization, Thompson construction, Arden elimination, transducers, tokenizer DFA, parser) | **UPDATED POLICY: Prefer using well-maintained libraries where available.** Only implement from scratch if: (1) no suitable library exists, (2) we need intermediate steps/traces that libraries don't provide, or (3) the library doesn't fit our exact requirements. When implementing, follow the named textbook algorithm and justify the decision in the report. |
 | Known test cases | Use **textbook examples** (Hopcroft-Ullman, Sipser, Kozen, or the class notes in `requirements.md` Appendix A) and **oracle-based tests** (section 4). |
 | Anything else | Search `node_modules`/well-known packages first. Only write custom code if no maintained package fits, and say why in the report. |
 
 Never copy code from the internet of unknown license. Implement from the algorithm description, and name the algorithm in a comment (for example `// Subset construction (Sipser, Thm 1.39)`). If you are unsure about an exact theorem number, name only the algorithm, never invent a citation.
+
+**NOTE:** For trace generation (showing intermediate steps), we may need to wrap or extend library functions to capture step-by-step execution.
 
 ## 3. Dependency rules
 
