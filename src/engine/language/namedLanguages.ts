@@ -113,8 +113,9 @@ const wwR: NamedLanguage = {
     return first === second.split('').reverse().join('');
   },
   witness: (p: number): string => {
-    const w = 'a'.repeat(p);
-    return w + w.split('').reverse().join('');
+    // Use a^p b b a^p which is an even-length palindrome
+    // When pumped in first p chars (all a's), becomes a^{p+k} b b a^p (not palindrome)
+    return 'a'.repeat(p) + 'bb' + 'a'.repeat(p);
   },
 };
 

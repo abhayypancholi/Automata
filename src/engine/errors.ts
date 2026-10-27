@@ -9,6 +9,8 @@ export type ErrorCode =
   | 'UNSUPPORTED_REGEX_FEATURE'
   | 'MALFORMED_GRAMMAR'
   | 'UNEXPECTED_CHARACTER'
+  | 'UNEXPECTED_EOF'
+  | 'UNEXPECTED_TOKEN'
   | 'UNCLOSED_PAREN'
   | 'UNEXPECTED_CLOSE_PAREN'
   | 'MISSING_OPERAND'
@@ -19,7 +21,11 @@ export type ErrorCode =
   | 'UNDECLARED_IDENTIFIER'
   | 'RESERVED_NAME'
   | 'UNKNOWN_FUNCTION'
-  | 'WRONG_ARITY';
+  | 'WRONG_ARITY'
+  // Client-side error codes
+  | 'NETWORK_ERROR'
+  | 'PARSE_ERROR'
+  | 'UNKNOWN_ERROR';
 
 export interface EngineError {
   code: ErrorCode;
