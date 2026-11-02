@@ -1,0 +1,12 @@
+{
+  "id": "regex-optional-plus",
+  "title": "Regex: Optional a",
+  "description": "Pattern with optional a, followed by b",
+  "regex": "(a|)b",
+  "testStrings": [
+    { "input": "b", "shouldMatch": true },
+    { "input": "ab", "shouldMatch": true },
+    { "input": "a", "shouldMatch": false },
+    { "input": "", "shouldMatch": false }
+  ]
+}

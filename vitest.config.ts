@@ -5,6 +5,13 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    setupFiles: ['./src/test/setup.ts'],
+    // @ts-expect-error - environmentMatchGlobs is valid but not in types yet
+    environmentMatchGlobs: [
+      // Use jsdom for component tests
+      ['src/components/**/*.test.tsx', 'jsdom'],
+      ['src/components/**/*.test.ts', 'jsdom'],
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

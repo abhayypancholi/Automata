@@ -1,0 +1,11 @@
+{
+  "id": "parser-unknown-unit",
+  "title": "Parser Error: Unknown unit",
+  "description": "From Appendix B: UNKNOWN_UNIT for 'volts'",
+  "source": "dv/dt = (I - v)/tau : volts\ntau : second\nI : volt",
+  "shouldParse": false,
+  "expectedError": {
+    "code": "UNKNOWN_UNIT",
+    "line": 1
+  }
+}

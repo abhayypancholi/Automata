@@ -1,0 +1,16 @@
+{
+  "id": "regex-binary-divisible",
+  "title": "Regex: Binary numbers ending in 0",
+  "description": "Binary strings ending in 0 (even numbers)",
+  "regex": "(0|1)*0",
+  "testStrings": [
+    { "input": "0", "shouldMatch": true },
+    { "input": "10", "shouldMatch": true },
+    { "input": "100", "shouldMatch": true },
+    { "input": "1010", "shouldMatch": true },
+    { "input": "1", "shouldMatch": false },
+    { "input": "11", "shouldMatch": false },
+    { "input": "101", "shouldMatch": false },
+    { "input": "", "shouldMatch": false }
+  ]
+}

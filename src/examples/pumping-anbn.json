@@ -1,0 +1,8 @@
+{
+  "id": "pumping-anbn",
+  "title": "Pumping Lemma: aⁿbⁿ is not regular",
+  "description": "Demonstrates that aⁿbⁿ fails the pumping lemma for regular languages",
+  "mode": "nonregular",
+  "languageId": "anbn",
+  "p": 3
+}

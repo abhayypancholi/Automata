@@ -1,0 +1,11 @@
+{
+  "id": "parser-missing-equals",
+  "title": "Parser Error: Missing equals",
+  "description": "From Appendix B: MISSING_EQUALS",
+  "source": "dv/dt (I - v)/tau : volt\ntau : second\nI : volt",
+  "shouldParse": false,
+  "expectedError": {
+    "code": "MISSING_EQUALS",
+    "line": 1
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "parser-unclosed-paren",
+  "title": "Parser Error: Unclosed parenthesis",
+  "description": "From Appendix B: UNCLOSED_PAREN opened at 1:9",
+  "source": "dv/dt = (I - v/tau : volt\ntau : second\nI : volt",
+  "shouldParse": false,
+  "expectedError": {
+    "code": "UNCLOSED_PAREN",
+    "line": 1,
+    "column": 9
+  }
+}

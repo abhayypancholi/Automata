@@ -1,0 +1,8 @@
+{
+  "id": "language-regex",
+  "title": "Language Identification: Regular expression",
+  "description": "Identify language class from a regular expression",
+  "inputKind": "regex",
+  "input": "[01]*0",
+  "expectedClass": "Regular"
+}

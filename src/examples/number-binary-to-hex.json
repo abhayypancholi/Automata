@@ -1,0 +1,9 @@
+{
+  "id": "number-binary-to-hex",
+  "title": "Number Conversion: Binary to Hexadecimal",
+  "description": "Convert binary 11111111 to hexadecimal using transducer",
+  "from": "binary",
+  "to": "hex",
+  "input": "11111111",
+  "expectedOutput": "FF"
+}

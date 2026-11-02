@@ -1,0 +1,11 @@
+{
+  "id": "parser-missing-unit",
+  "title": "Parser Error: Missing unit",
+  "description": "From Appendix B: MISSING_UNIT",
+  "source": "dv/dt = (I - v)/tau\ntau : second\nI : volt",
+  "shouldParse": false,
+  "expectedError": {
+    "code": "MISSING_UNIT",
+    "line": 1
+  }
+}

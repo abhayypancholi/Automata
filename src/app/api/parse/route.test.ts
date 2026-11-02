@@ -65,7 +65,7 @@ describe('POST /api/parse', () => {
     const request = createRequest({ source: 'x = @ : m' });
     const response = await POST(request);
     
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(422);
     
     const json = await response.json();
     expect(json.ok).toBe(false);

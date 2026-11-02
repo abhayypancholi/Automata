@@ -1,0 +1,8 @@
+{
+  "id": "pumping-anbncn",
+  "title": "Pumping Lemma: aⁿbⁿcⁿ",
+  "description": "Demonstrates that aⁿbⁿcⁿ fails the pumping lemma - not context-free",
+  "mode": "nonregular",
+  "languageId": "anbncn",
+  "p": 3
+}

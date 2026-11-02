@@ -1,0 +1,9 @@
+{
+  "id": "number-binary-to-octal",
+  "title": "Number Conversion: Binary to Octal",
+  "description": "Convert binary 1010110 to octal using transducer",
+  "from": "binary",
+  "to": "octal",
+  "input": "1010110",
+  "expectedOutput": "126"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "language-named-anbn",
+  "title": "Language Identification: Named language aⁿbⁿ",
+  "description": "Identify the aⁿbⁿ language from the library",
+  "inputKind": "named",
+  "input": "anbn",
+  "expectedClass": "Type 2"
+}

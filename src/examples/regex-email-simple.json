@@ -1,0 +1,16 @@
+{
+  "id": "regex-email-simple",
+  "title": "Regex: Simple pattern",
+  "description": "Simple pattern with Kleene star and union",
+  "regex": "a(b|c)*d",
+  "testStrings": [
+    { "input": "ad", "shouldMatch": true },
+    { "input": "abd", "shouldMatch": true },
+    { "input": "acd", "shouldMatch": true },
+    { "input": "abcd", "shouldMatch": true },
+    { "input": "abbbcd", "shouldMatch": true },
+    { "input": "a", "shouldMatch": false },
+    { "input": "d", "shouldMatch": false },
+    { "input": "ab", "shouldMatch": false }
+  ]
+}

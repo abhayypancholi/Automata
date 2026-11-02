@@ -1,0 +1,33 @@
+{
+  "id": "dfa-sum-even",
+  "title": "DFA: Sum of symbols is even",
+  "description": "From class: L = { w | w belongs to {0, 1, 2, 3}* and the sum of the symbols of w is always even }",
+  "automaton": {
+    "kind": "DFA",
+    "states": ["even", "odd"],
+    "alphabet": ["0", "1", "2", "3"],
+    "start": "even",
+    "accepting": ["even"],
+    "transitions": [
+      { "from": "even", "symbol": "0", "to": "even" },
+      { "from": "even", "symbol": "1", "to": "odd" },
+      { "from": "even", "symbol": "2", "to": "even" },
+      { "from": "even", "symbol": "3", "to": "odd" },
+      { "from": "odd", "symbol": "0", "to": "odd" },
+      { "from": "odd", "symbol": "1", "to": "even" },
+      { "from": "odd", "symbol": "2", "to": "odd" },
+      { "from": "odd", "symbol": "3", "to": "even" }
+    ]
+  },
+  "testStrings": [
+    { "input": "", "shouldAccept": true },
+    { "input": "0", "shouldAccept": true },
+    { "input": "2", "shouldAccept": true },
+    { "input": "1", "shouldAccept": false },
+    { "input": "3", "shouldAccept": false },
+    { "input": "11", "shouldAccept": true },
+    { "input": "12", "shouldAccept": false },
+    { "input": "0123", "shouldAccept": true },
+    { "input": "321", "shouldAccept": true }
+  ]
+}

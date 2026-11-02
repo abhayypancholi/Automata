@@ -1,0 +1,48 @@
+{
+  "id": "min-no-consecutive",
+  "title": "Minimization: No consecutive symbols",
+  "description": "From class minimization example (b): L = { w | w belongs to {a, b, c, d}* and no symbol appears consecutively in w }",
+  "automaton": {
+    "kind": "DFA",
+    "states": ["start", "a", "b", "c", "d", "dead"],
+    "alphabet": ["a", "b", "c", "d"],
+    "start": "start",
+    "accepting": ["start", "a", "b", "c", "d"],
+    "transitions": [
+      { "from": "start", "symbol": "a", "to": "a" },
+      { "from": "start", "symbol": "b", "to": "b" },
+      { "from": "start", "symbol": "c", "to": "c" },
+      { "from": "start", "symbol": "d", "to": "d" },
+      { "from": "a", "symbol": "a", "to": "dead" },
+      { "from": "a", "symbol": "b", "to": "b" },
+      { "from": "a", "symbol": "c", "to": "c" },
+      { "from": "a", "symbol": "d", "to": "d" },
+      { "from": "b", "symbol": "a", "to": "a" },
+      { "from": "b", "symbol": "b", "to": "dead" },
+      { "from": "b", "symbol": "c", "to": "c" },
+      { "from": "b", "symbol": "d", "to": "d" },
+      { "from": "c", "symbol": "a", "to": "a" },
+      { "from": "c", "symbol": "b", "to": "b" },
+      { "from": "c", "symbol": "c", "to": "dead" },
+      { "from": "c", "symbol": "d", "to": "d" },
+      { "from": "d", "symbol": "a", "to": "a" },
+      { "from": "d", "symbol": "b", "to": "b" },
+      { "from": "d", "symbol": "c", "to": "c" },
+      { "from": "d", "symbol": "d", "to": "dead" },
+      { "from": "dead", "symbol": "a", "to": "dead" },
+      { "from": "dead", "symbol": "b", "to": "dead" },
+      { "from": "dead", "symbol": "c", "to": "dead" },
+      { "from": "dead", "symbol": "d", "to": "dead" }
+    ]
+  },
+  "testStrings": [
+    { "input": "", "shouldAccept": true },
+    { "input": "a", "shouldAccept": true },
+    { "input": "ab", "shouldAccept": true },
+    { "input": "abcd", "shouldAccept": true },
+    { "input": "aa", "shouldAccept": false },
+    { "input": "abb", "shouldAccept": false },
+    { "input": "abcc", "shouldAccept": false }
+  ],
+  "expectedMinimalStates": 6
+}

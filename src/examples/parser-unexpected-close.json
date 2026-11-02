@@ -1,0 +1,11 @@
+{
+  "id": "parser-unexpected-close",
+  "title": "Parser Error: Unexpected close parenthesis",
+  "description": "From Appendix B: UNEXPECTED_CLOSE_PAREN",
+  "source": "dv/dt = I - v) / tau : volt\ntau : second\nI : volt",
+  "shouldParse": false,
+  "expectedError": {
+    "code": "UNEXPECTED_CLOSE_PAREN",
+    "line": 1
+  }
+}

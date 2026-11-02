@@ -1,0 +1,7 @@
+{
+  "id": "parser-valid",
+  "title": "Parser: Valid leaky integrate-and-fire neuron",
+  "description": "From Appendix B: Valid program with comments and unit declarations",
+  "source": "# leaky integrate-and-fire neuron\ndv/dt = (I - v)/tau : volt      # membrane potential\ntau : second (constant)\nI : volt",
+  "shouldParse": true
+}

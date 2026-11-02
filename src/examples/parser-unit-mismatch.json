@@ -1,0 +1,11 @@
+{
+  "id": "parser-unit-mismatch",
+  "title": "Parser Error: Unit mismatch",
+  "description": "From Appendix B: UNIT_MISMATCH (volt + second)",
+  "source": "dv/dt = I + tau : volt\ntau : second\nI : volt",
+  "shouldParse": false,
+  "expectedError": {
+    "code": "UNIT_MISMATCH",
+    "line": 1
+  }
+}

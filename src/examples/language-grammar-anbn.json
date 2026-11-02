@@ -1,0 +1,8 @@
+{
+  "id": "language-grammar-anbn",
+  "title": "Language Identification: aⁿbⁿ grammar",
+  "description": "From class: Grammar for L = { a^m b^n c^p | m = n + p; m, n, p >= 0 }",
+  "inputKind": "grammar",
+  "input": "S -> A C\nA -> a A b | ε\nC -> a C c | ε",
+  "expectedClass": "Type 2"
+}

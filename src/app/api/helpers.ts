@@ -8,6 +8,28 @@ import type { EngineError } from '@/engine/errors';
 import { z } from 'zod';
 
 /**
+ * Zod schema for Transition
+ */
+const TransitionSchema = z.object({
+  from: z.string(),
+  symbol: z.string(),
+  to: z.string(),
+});
+
+/**
+ * Zod schema for Automaton
+ */
+export const AutomatonSchema = z.object({
+  kind: z.enum(['DFA', 'NFA']),
+  states: z.array(z.string()).max(30, 'Too many states (max 30)'),
+  alphabet: z.array(z.string()).max(10, 'Too many alphabet symbols (max 10)'),
+  start: z.string(),
+  accepting: z.array(z.string()),
+  transitions: z.array(TransitionSchema),
+  layout: z.record(z.string(), z.object({ x: z.number(), y: z.number() })).optional(),
+});
+
+/**
  * Success response envelope
  */
 export interface SuccessResponse<T> {
@@ -67,6 +89,7 @@ function mapErrorToStatus(error: EngineError): number {
     
     // User errors (malformed input)
     case 'INVALID_AUTOMATON':
+    case 'SYMBOL_NOT_IN_ALPHABET':
     case 'UNEXPECTED_CHARACTER':
     case 'UNEXPECTED_TOKEN':
     case 'UNEXPECTED_EOF':
@@ -82,7 +105,7 @@ function mapErrorToStatus(error: EngineError): number {
     case 'UNKNOWN_FUNCTION':
     case 'WRONG_ARITY':
     case 'MALFORMED_GRAMMAR':
-      return 400;
+      return 422;
     
     default:
       return 500;

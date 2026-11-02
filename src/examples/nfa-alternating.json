@@ -1,0 +1,29 @@
+{
+  "id": "nfa-alternating",
+  "title": "NFA: Alternating 01 or 10",
+  "description": "NFA accepting strings that are alternating sequences of 0 and 1",
+  "automaton": {
+    "kind": "NFA",
+    "states": ["start", "got0", "got1"],
+    "alphabet": ["0", "1"],
+    "start": "start",
+    "accepting": ["got0", "got1"],
+    "transitions": [
+      { "from": "start", "symbol": "0", "to": "got0" },
+      { "from": "start", "symbol": "1", "to": "got1" },
+      { "from": "got0", "symbol": "1", "to": "got1" },
+      { "from": "got1", "symbol": "0", "to": "got0" }
+    ]
+  },
+  "testStrings": [
+    { "input": "0", "shouldAccept": true },
+    { "input": "1", "shouldAccept": true },
+    { "input": "01", "shouldAccept": true },
+    { "input": "10", "shouldAccept": true },
+    { "input": "0101", "shouldAccept": true },
+    { "input": "1010", "shouldAccept": true },
+    { "input": "00", "shouldAccept": false },
+    { "input": "011", "shouldAccept": false },
+    { "input": "", "shouldAccept": false }
+  ]
+}

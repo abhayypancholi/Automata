@@ -1,0 +1,11 @@
+{
+  "id": "parser-missing-operand",
+  "title": "Parser Error: Missing operand",
+  "description": "From Appendix B: MISSING_OPERAND",
+  "source": "dv/dt = I + : volt\ntau : second\nI : volt",
+  "shouldParse": false,
+  "expectedError": {
+    "code": "MISSING_OPERAND",
+    "line": 1
+  }
+}

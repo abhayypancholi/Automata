@@ -1,0 +1,28 @@
+{
+  "id": "nfa-epsilon",
+  "title": "NFA: Epsilon transitions (a|b)*abb",
+  "description": "NFA with epsilon transitions accepting strings ending with 'abb'",
+  "automaton": {
+    "kind": "NFA",
+    "states": ["q0", "q1", "q2", "q3"],
+    "alphabet": ["a", "b"],
+    "start": "q0",
+    "accepting": ["q3"],
+    "transitions": [
+      { "from": "q0", "symbol": "a", "to": "q0" },
+      { "from": "q0", "symbol": "b", "to": "q0" },
+      { "from": "q0", "symbol": "a", "to": "q1" },
+      { "from": "q1", "symbol": "b", "to": "q2" },
+      { "from": "q2", "symbol": "b", "to": "q3" }
+    ]
+  },
+  "testStrings": [
+    { "input": "abb", "shouldAccept": true },
+    { "input": "aabb", "shouldAccept": true },
+    { "input": "babb", "shouldAccept": true },
+    { "input": "abababb", "shouldAccept": true },
+    { "input": "ab", "shouldAccept": false },
+    { "input": "aba", "shouldAccept": false },
+    { "input": "", "shouldAccept": false }
+  ]
+}
