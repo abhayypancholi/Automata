@@ -61,32 +61,90 @@ export function toFlowGraph(automaton: Automaton): FlowGraph {
   // Create edges
   const edges: Edge<EdgeData>[] = [];
 
-  // Track which pairs have opposite edges
+  // Track which pairs have opposite edges and count multiple edges
   const opposites = new Set<string>();
+  const edgeCounts = new Map<string, number>();
+  
+  // Count edges between each pair (in both directions)
   for (const group of grouped.values()) {
-    const reverseKey = `${group.to}->${group.from}`;
-    if (grouped.has(reverseKey) && group.from !== group.to) {
-      opposites.add(`${group.from}->${group.to}`);
-      opposites.add(reverseKey);
+    const forwardKey = `${group.from}-${group.to}`;
+    const reverseKey = `${group.to}-${group.from}`;
+    const pairKey = [group.from, group.to].sort().join('-');
+    
+    if (group.from !== group.to) {
+      edgeCounts.set(pairKey, (edgeCounts.get(pairKey) || 0) + 1);
+      
+      if (grouped.has(reverseKey)) {
+        opposites.add(forwardKey);
+        opposites.add(reverseKey);
+      }
     }
   }
 
+  let edgeIndex = 0;
   for (const group of grouped.values()) {
     const key = `${group.from}->${group.to}`;
     const isSelfLoop = group.from === group.to;
     const hasOpposite = opposites.has(key);
+    const pairKey = [group.from, group.to].sort().join('-');
+    const multipleEdges = (edgeCounts.get(pairKey) || 0) > 1;
+
+    // Determine edge type
+    let edgeType: string = 'default';
+    let edgeOptions: Record<string, any> = {};
+    
+    if (isSelfLoop) {
+      edgeType = 'selfloop';
+    } else if (multipleEdges && hasOpposite) {
+      // Multiple edges between same nodes - use smoothstep with curvature
+      edgeType = 'smoothstep';
+      // Add curvature based on direction
+      const isForward = group.from < group.to;
+      edgeOptions.pathOptions = {
+        offset: isForward ? 25 : -25,
+        borderRadius: 20,
+      };
+    } else {
+      // Single edge - use smoothstep for nice curves
+      edgeType = 'smoothstep';
+    }
 
     edges.push({
       id: key,
       source: group.from,
       target: group.to,
       label: group.symbols.sort().join(', '),
-      type: isSelfLoop ? 'selfloop' : hasOpposite ? 'curved' : 'default',
+      type: edgeType,
+      animated: false,
+      ...edgeOptions,
+      style: {
+        strokeWidth: 2,
+        stroke: '#374151',
+      },
+      labelStyle: {
+        fill: '#1f2937',
+        fontWeight: 600,
+        fontSize: 14,
+      },
+      labelBgStyle: {
+        fill: '#ffffff',
+        fillOpacity: 0.95,
+      },
+      labelBgPadding: [8, 4] as [number, number],
+      labelBgBorderRadius: 4,
+      markerEnd: {
+        type: 'arrowclosed' as const,
+        width: 20,
+        height: 20,
+        color: '#374151',
+      },
       data: {
         isSelfLoop,
         hasOpposite,
       },
     });
+    
+    edgeIndex++;
   }
 
   return { nodes, edges };

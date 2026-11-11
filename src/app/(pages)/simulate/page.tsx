@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { AutomatonEditor } from '@/components/editor/AutomatonEditor';
 import { useAutomatonStore } from '@/lib/store';
@@ -32,6 +32,7 @@ export default function SimulatePage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedResultIndex, setSelectedResultIndex] = useState<number>(0);
   const [currentStep, setCurrentStep] = useState<number>(0);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
   const handleSimulate = async () => {
     if (!automaton) {
@@ -73,7 +74,15 @@ export default function SimulatePage() {
         return;
       }
 
-      setResults(data.data);
+      // API returns { ok: true, result: { results: [...] } }
+      const simulationResults = data.result?.results || data.results || [];
+      
+      setResults(simulationResults.map((r: any) => ({
+        input: r.input,
+        ok: true,
+        accepted: r.accepted,
+        trace: r.trace,
+      })));
       setSelectedResultIndex(0);
       setCurrentStep(0);
     } catch (err) {
@@ -85,6 +94,33 @@ export default function SimulatePage() {
 
   const selectedResult = results?.[selectedResultIndex];
   const trace = selectedResult?.trace || [];
+
+  // Handle play/pause auto-stepping
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    const interval = setInterval(() => {
+      setCurrentStep((step) => {
+        if (step >= trace.length - 1) {
+          setIsPlaying(false);
+          return step;
+        }
+        return step + 1;
+      });
+    }, 1000); // 1 second per step
+
+    return () => clearInterval(interval);
+  }, [isPlaying, trace.length]);
+
+  const handlePlayPause = () => {
+    if (currentStep >= trace.length - 1 && !isPlaying) {
+      // Reset to beginning if at the end
+      setCurrentStep(0);
+      setIsPlaying(true);
+    } else {
+      setIsPlaying(!isPlaying);
+    }
+  };
 
   return (
     <Layout>
@@ -226,8 +262,8 @@ export default function SimulatePage() {
                     currentStep={currentStep}
                     totalSteps={trace.length}
                     onStepChange={setCurrentStep}
-                    isPlaying={false}
-                    onPlayPause={() => {}}
+                    isPlaying={isPlaying}
+                    onPlayPause={handlePlayPause}
                   />
 
                   <StepLog steps={trace} currentStep={currentStep} />

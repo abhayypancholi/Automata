@@ -10,6 +10,7 @@ interface AutomatonStore {
   toggleAccepting: (state: string) => void;
   addSymbol: (symbol: string) => void;
   removeSymbol: (symbol: string) => void;
+  renameSymbol: (oldSymbol: string, newSymbol: string) => void;
   addTransition: (transition: Transition) => void;
   removeTransition: (transition: Transition) => void;
   updateTransition: (old: Transition, updated: Transition) => void;
@@ -202,6 +203,37 @@ export const useAutomatonStore = create<AutomatonStore>((set, get) => ({
       const alphabet = store.automaton.alphabet.filter((s) => s !== symbol);
       const transitions = store.automaton.transitions.filter(
         (t) => t.symbol !== symbol
+      );
+
+      return {
+        automaton: {
+          ...store.automaton,
+          alphabet,
+          transitions,
+        },
+      };
+    });
+  },
+
+  renameSymbol: (oldSymbol: string, newSymbol: string) => {
+    set((store) => {
+      // Don't rename if target symbol already exists
+      if (
+        store.automaton.alphabet.includes(newSymbol) &&
+        oldSymbol !== newSymbol
+      ) {
+        return store;
+      }
+
+      const alphabet = store.automaton.alphabet
+        .map((s) => (s === oldSymbol ? newSymbol : s))
+        .sort();
+
+      const transitions = sortTransitions(
+        store.automaton.transitions.map((t) => ({
+          ...t,
+          symbol: t.symbol === oldSymbol ? newSymbol : t.symbol,
+        }))
       );
 
       return {

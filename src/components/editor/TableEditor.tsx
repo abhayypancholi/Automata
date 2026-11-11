@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useAutomatonStore } from '@/lib/store';
 
 export function TableEditor() {
@@ -7,13 +8,21 @@ export function TableEditor() {
   const {
     addState,
     deleteState,
+    renameState,
     setStart,
     toggleAccepting,
     addSymbol,
     removeSymbol,
+    renameSymbol,
     addTransition,
     removeTransition,
   } = useAutomatonStore();
+
+  // Local state for editing transitions and symbols
+  const [editingCell, setEditingCell] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState<string>('');
+  const [editingSymbol, setEditingSymbol] = useState<string | null>(null);
+  const [symbolEditValue, setSymbolEditValue] = useState<string>('');
 
   const handleAddState = () => {
     const newName = `q${automaton.states.length}`;
@@ -34,28 +43,40 @@ export function TableEditor() {
       .map((t) => t.to);
   };
 
-  // Handle transition cell change
+  // Handle transition cell change (just updates display, doesn't validate)
   const handleTransitionChange = (
     state: string,
     symbol: string,
     value: string
   ) => {
-    const currentTargets = getTransitions(state, symbol);
+    // Don't validate or modify - just let the user type
+    // Actual state updates happen in handleTransitionCommit
+  };
 
-    // Remove existing transitions
-    for (const target of currentTargets) {
-      removeTransition({ from: state, symbol, to: target });
-    }
-
-    // Add new transitions (comma-separated for NFA)
+  // Handle when user finishes editing (blur or Enter)
+  const handleTransitionCommit = (
+    state: string,
+    symbol: string,
+    value: string
+  ) => {
     if (value.trim()) {
       const targets = value
         .split(',')
         .map((t) => t.trim())
-        .filter((t) => automaton.states.includes(t));
+        .filter((t) => t.length > 0);
 
       for (const target of targets) {
-        addTransition({ from: state, symbol, to: target });
+        // Auto-create states that don't exist
+        if (!automaton.states.includes(target)) {
+          addState(target);
+        }
+        // Ensure transition exists
+        const transitionExists = automaton.transitions.some(
+          (t) => t.from === state && t.symbol === symbol && t.to === target
+        );
+        if (!transitionExists) {
+          addTransition({ from: state, symbol, to: target });
+        }
       }
     }
   };
@@ -103,15 +124,54 @@ export function TableEditor() {
                     key={symbol}
                     className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-center font-semibold"
                   >
-                    {symbol}
-                    <button
-                      onClick={() => removeSymbol(symbol)}
-                      className="ml-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
-                      aria-label={`Remove symbol ${symbol}`}
-                      title="Remove symbol"
-                    >
-                      ×
-                    </button>
+                    <div className="flex items-center justify-center gap-2">
+                      {symbol !== 'ε' ? (
+                        <input
+                          type="text"
+                          value={editingSymbol === symbol ? symbolEditValue : symbol}
+                          onFocus={() => {
+                            setEditingSymbol(symbol);
+                            setSymbolEditValue(symbol);
+                          }}
+                          onChange={(e) => {
+                            setSymbolEditValue(e.target.value);
+                          }}
+                          onBlur={(e) => {
+                            const newSymbol = e.target.value.trim();
+                            if (newSymbol && newSymbol !== symbol && newSymbol.length <= 3) {
+                              renameSymbol(symbol, newSymbol);
+                            }
+                            setEditingSymbol(null);
+                            setSymbolEditValue('');
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const newSymbol = e.currentTarget.value.trim();
+                              if (newSymbol && newSymbol !== symbol && newSymbol.length <= 3) {
+                                renameSymbol(symbol, newSymbol);
+                              }
+                              setEditingSymbol(null);
+                              setSymbolEditValue('');
+                              e.currentTarget.blur();
+                            }
+                          }}
+                          className="w-12 bg-transparent text-center font-semibold focus:bg-white dark:focus:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1"
+                          maxLength={3}
+                        />
+                      ) : (
+                        <span>{symbol}</span>
+                      )}
+                      {symbol !== 'ε' && (
+                        <button
+                          onClick={() => removeSymbol(symbol)}
+                          className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                          aria-label={`Remove symbol ${symbol}`}
+                          title="Remove symbol"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
                   </th>
                 ))}
                 <th className="border border-gray-300 dark:border-gray-600 px-3 py-2"></th>
@@ -123,8 +183,26 @@ export function TableEditor() {
                   key={state}
                   className="hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
-                  <td className="border border-gray-300 dark:border-gray-600 px-3 py-2 font-medium">
-                    {state}
+                  <td className="border border-gray-300 dark:border-gray-600 px-3 py-2">
+                    <input
+                      type="text"
+                      value={state}
+                      onChange={(e) => {
+                        const newName = e.target.value.trim();
+                        if (newName && newName !== state) {
+                          renameState(state, newName);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const newName = e.target.value.trim();
+                        if (!newName) {
+                          // Restore original name if empty
+                          e.target.value = state;
+                        }
+                      }}
+                      className="w-full bg-transparent px-1 py-0.5 font-medium focus:bg-white dark:focus:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      aria-label={`State name: ${state}`}
+                    />
                   </td>
                   <td className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-center">
                     <input
@@ -145,23 +223,51 @@ export function TableEditor() {
                       aria-label={`Toggle ${state} as accepting`}
                     />
                   </td>
-                  {alphabet.map((symbol) => (
-                    <td
-                      key={symbol}
-                      className="border border-gray-300 dark:border-gray-600 px-2 py-1"
-                    >
-                      <input
-                        type="text"
-                        value={getTransitions(state, symbol).join(', ')}
-                        onChange={(e) =>
-                          handleTransitionChange(state, symbol, e.target.value)
-                        }
-                        className="w-full bg-transparent px-1 py-0.5 text-center focus:bg-white dark:focus:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        placeholder="—"
-                        aria-label={`Transition from ${state} on ${symbol}`}
-                      />
-                    </td>
-                  ))}
+                  {alphabet.map((symbol) => {
+                    const cellKey = `${state}-${symbol}`;
+                    const currentValue = getTransitions(state, symbol).join(', ');
+                    const isEditing = editingCell === cellKey;
+                    const displayValue = isEditing ? editValue : currentValue;
+                    
+                    return (
+                      <td
+                        key={symbol}
+                        className="border border-gray-300 dark:border-gray-600 px-2 py-1"
+                      >
+                        <input
+                          type="text"
+                          list={`states-${state}-${symbol}`}
+                          value={displayValue}
+                          onFocus={() => {
+                            setEditingCell(cellKey);
+                            setEditValue(currentValue);
+                          }}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onBlur={(e) => {
+                            handleTransitionCommit(state, symbol, e.target.value);
+                            setEditingCell(null);
+                            setEditValue('');
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleTransitionCommit(state, symbol, e.currentTarget.value);
+                              setEditingCell(null);
+                              setEditValue('');
+                              e.currentTarget.blur();
+                            }
+                          }}
+                          className="w-full bg-transparent px-1 py-0.5 text-center focus:bg-white dark:focus:bg-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          placeholder="—"
+                          aria-label={`Transition from ${state} on ${symbol}`}
+                        />
+                        <datalist id={`states-${state}-${symbol}`}>
+                          {automaton.states.map((s) => (
+                            <option key={s} value={s} />
+                          ))}
+                        </datalist>
+                      </td>
+                    );
+                  })}
                   <td className="border border-gray-300 dark:border-gray-600 px-2 py-1 text-center">
                     <button
                       onClick={() => deleteState(state)}

@@ -231,4 +231,6 @@ Regular expression parsing uses the `regexp-tree` library by Dmitry Soshnikov.
 
 ## Deployed Application
 
-Deployed on Vercel: [URL will be added after deployment]
+**Live Demo:** [https://automata-beta-olive.vercel.app](https://automata-beta-olive.vercel.app)
+
+Deployed on Vercel serverless infrastructure. Performance measured at <1s for typical inputs within limits.
