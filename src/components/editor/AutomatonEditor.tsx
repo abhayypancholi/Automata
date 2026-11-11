@@ -7,9 +7,10 @@ import { useAutomatonStore } from '@/lib/store';
 import { validateAutomaton } from '@/engine/automaton/validate';
 
 export function AutomatonEditor() {
-  const [view, setView] = useState<'table' | 'canvas'>('canvas');
+  const [view, setView] = useState<'table' | 'canvas'>('table');
+  const [showHelp, setShowHelp] = useState(false);
   const automaton = useAutomatonStore((state) => state.automaton);
-  const { importAutomaton, exportAutomaton, setKind } = useAutomatonStore();
+  const { importAutomaton, exportAutomaton, setKind, addState, addSymbol } = useAutomatonStore();
 
   // Validate automaton
   const validation = validateAutomaton(automaton);
@@ -26,8 +27,9 @@ export function AutomatonEditor() {
         const text = await file.text();
         const data = JSON.parse(text);
         importAutomaton(data);
-      } catch {
-        alert('Failed to import: Invalid JSON file');
+        alert('Successfully imported automaton!');
+      } catch (err) {
+        alert(`Failed to import: ${err instanceof Error ? err.message : 'Invalid JSON file'}`);
       }
     };
     input.click();
@@ -98,6 +100,26 @@ export function AutomatonEditor() {
           </button>
         </div>
 
+        {/* Quick Actions for Canvas */}
+        {view === 'canvas' && (
+          <>
+            <button
+              onClick={() => addState(`q${automaton.states.length}`)}
+              className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 dark:bg-blue-500"
+            >
+              Add State
+            </button>
+            <button
+              onClick={() => addSymbol(String.fromCharCode(97 + automaton.alphabet.length))}
+              className="rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 dark:bg-green-500"
+            >
+              Add Symbol
+            </button>
+          </>
+        )}
+
+        <div className="flex-1"></div>
+
         {/* Import/Export */}
         <button
           onClick={handleImport}
@@ -111,7 +133,47 @@ export function AutomatonEditor() {
         >
           Export JSON
         </button>
+        <button
+          onClick={() => setShowHelp(!showHelp)}
+          className="rounded-md bg-gray-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 dark:bg-gray-500"
+        >
+          {showHelp ? 'Hide' : 'Show'} Help
+        </button>
       </div>
+
+      {/* Help Section */}
+      {showHelp && (
+        <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950 p-4">
+          <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Quick Start Guide</h3>
+          <div className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+            <p><strong>Table View:</strong> Click "Add State" and "Add Symbol" buttons, then type target states in the cells.</p>
+            <p><strong>Canvas View:</strong> Visualization only - use Table view to edit. Canvas shows your automaton structure.</p>
+            <p><strong>Set Start:</strong> Click radio button in "Start" column</p>
+            <p><strong>Set Accepting:</strong> Check checkbox in "Accept" column</p>
+            <p><strong>Add Transition:</strong> Type target state in the cell (for NFA, use comma: "q1, q2")</p>
+            <p><strong>Epsilon Transitions:</strong> Switch to NFA mode, use "ε" column</p>
+            
+            <div className="mt-3 pt-3 border-t border-blue-300 dark:border-blue-700">
+              <p className="font-semibold mb-1">Correct JSON Format:</p>
+              <pre className="bg-blue-100 dark:bg-blue-900 p-2 rounded text-xs overflow-x-auto">
+{`{
+  "kind": "DFA",
+  "states": ["q0", "q1"],
+  "alphabet": ["a", "b"],
+  "start": "q0",
+  "accepting": ["q0"],
+  "transitions": [
+    { "from": "q0", "symbol": "a", "to": "q1" },
+    { "from": "q0", "symbol": "b", "to": "q0" },
+    { "from": "q1", "symbol": "a", "to": "q0" },
+    { "from": "q1", "symbol": "b", "to": "q1" }
+  ]
+}`}</pre>
+              <p className="mt-2 text-xs">Also accepts: "type", "initialState", "acceptStates" (auto-converted)</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Validation Messages */}
       {!validation.ok && (

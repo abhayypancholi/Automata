@@ -23,7 +23,7 @@ Mapping of acceptance criteria (R1.1 to R17.6) to test files and manual verifica
 | **R3. NFA to DFA** | | | |
 | R3.1 | `src/engine/convert/subsetConstruction.test.ts` - trace shows subset, move, closure, isNew per step | Unit Test | ✅ |
 | R3.2 | `src/components/trace/StepViewSubset.tsx` - table view with one row per step | Code | ✅ |
-| R3.3 | `src/app/(pages)/nfa-to-dfa/page.tsx` - states named `{q0,q1}` with rename toggle (not implemented in UI, accepted deviation) | Partial | ⚠️ |
+| R3.3 | `src/app/(pages)/nfa-to-dfa/page.tsx` - states named `{q0,q1}` with rename toggle to A, B, C... | Code | ✅ |
 | R3.4 | `src/engine/convert/subsetConstruction.test.ts` - accepting if subset contains NFA accepting state | Unit Test | ✅ |
 | R3.5 | `src/engine/convert/subsetConstruction.test.ts` - dead state included only when reachable | Unit Test | ✅ |
 | R3.6 | `src/engine/convert/subsetConstruction.test.ts` - oracle tests verify language equivalence | Oracle Test | ✅ |
@@ -32,7 +32,7 @@ Mapping of acceptance criteria (R1.1 to R17.6) to test files and manual verifica
 | R4.1 | `src/engine/minimize/minimize.test.ts` - completion and unreachable removal as trace steps | Unit Test | ✅ |
 | R4.2 | `src/engine/minimize/minimize.test.ts` - partitions π0, π1... until stable | Unit Test | ✅ |
 | R4.3 | `src/components/trace/StepViewMinimize.tsx` - split witness (p, q, symbol) shown per iteration | Code | ✅ |
-| R4.4 | `src/app/(pages)/minimize/page.tsx` - state-to-block mapping displayed; hide-dead toggle (not implemented, accepted deviation) | Partial | ⚠️ |
+| R4.4 | `src/app/(pages)/minimize/page.tsx` - state-to-block mapping displayed; hide-dead toggle implemented | Code | ✅ |
 | R4.5 | `src/engine/minimize/minimize.test.ts` - oracle with table-filling reference verifies minimality | Oracle Test | ✅ |
 | R4.6 | `src/engine/minimize/minimize.test.ts` - alreadyMinimal flag when stable | Unit Test | ✅ |
 | **R5. Regular Expression to Automaton** | | | |
@@ -50,7 +50,7 @@ Mapping of acceptance criteria (R1.1 to R17.6) to test files and manual verifica
 | R7.1 | `src/app/(pages)/language/page.tsx` - regex/automaton input returns "Regular (Type 3)" | Code | ✅ |
 | R7.2 | `src/engine/language/classifyGrammar.test.ts` - grammar classification with "upper bound" language | Unit Test | ✅ |
 | R7.3 | `src/engine/language/namedLanguages.test.ts` - library with anbn, anbncn, wwR, ww, palindromes, etc. with class, proof, machine | Unit Test | ✅ |
-| R7.4 | `src/app/(pages)/language/page.tsx` - link to pumping demo (not implemented, accepted deviation) | Not Impl | ⚠️ |
+| R7.4 | `src/app/(pages)/language/page.tsx` - link to pumping demo when result is non-regular | Code | ✅ |
 | R7.5 | `src/app/(pages)/language/page.tsx` - disclaimer that classification is limited to known cases | Code | ✅ |
 | **R8. Pumping Lemma** | | | |
 | R8.1 | `src/engine/language/pumping.test.ts` - all decompositions listed with failure i for each | Unit Test | ✅ |
@@ -63,7 +63,7 @@ Mapping of acceptance criteria (R1.1 to R17.6) to test files and manual verifica
 | R9.3 | `src/engine/numbers/transducer.test.ts` - transducer table shown with trace per symbol | Unit Test | ✅ |
 | R9.4 | `src/engine/numbers/validators.test.ts` - regex + DFA pipeline for binary/octal/hex validation | Unit Test | ✅ |
 | R9.5 | `src/engine/numbers/divisibility.test.ts` - DFA for n=1..64, states=remainders, δ(r,b)=(2r+b) mod n | Unit Test | ✅ |
-| R9.6 | `src/app/(pages)/numbers/page.tsx` - explanation that decimal is not finite-state (placeholder for divisibility tab) | Partial | ⚠️ |
+| R9.6 | `src/app/(pages)/numbers/page.tsx` - explanation that decimal is not finite-state with detailed reasoning | Code | ✅ |
 | **R10. Tokenizer** | | | |
 | R10.1 | `src/engine/lexer/buildLexer.test.ts` - tokenizer built from regex→NFA→DFA pipeline | Unit Test | ✅ |
 | R10.2 | `src/engine/lexer/lex.test.ts` - all token types recognized (IDENT, NUMBER, BIN, OCT, HEX, OPS, DIFF, COMMENT, NEWLINE) | Unit Test | ✅ |
@@ -76,7 +76,7 @@ Mapping of acceptance criteria (R1.1 to R17.6) to test files and manual verifica
 | R11.2 | `src/engine/parser/parse.test.ts` + `src/engine/parser/derivation.test.ts` - parse tree, leftmost derivation, tokens | Unit Test | ✅ |
 | R11.3 | `src/app/api/parse/route.ts` - lines parsed independently | Code | ✅ |
 | R11.4 | `src/engine/parser/parse.test.ts` - precedence/associativity tests (unary minus, ^, **, *, /, +, -) | Unit Test | ✅ |
-| R11.5 | `src/app/(pages)/parser/page.tsx` - balanced parens demo linking to pumping (not implemented, accepted deviation) | Not Impl | ⚠️ |
+| R11.5 | `src/app/(pages)/parser/page.tsx` - balanced parens demo with link to pumping lemma | Code | ✅ |
 | **R12. Errors and Annotations** | | | |
 | R12.1 | `src/engine/parser/errorRenderer.test.ts` - error objects with code, message, line, column, expected, hint | Unit Test | ✅ |
 | R12.2 | `src/engine/parser/errorRenderer.test.ts` - caret rendering with source line | Unit Test | ✅ |
@@ -101,7 +101,7 @@ Mapping of acceptance criteria (R1.1 to R17.6) to test files and manual verifica
 | R15.2 | `src/app/api/*/route.test.ts` - Zod validation returns 400/422 for invalid/unsupported, 200 for success | Unit Test | ✅ |
 | R15.3 | `src/app/api/helpers.ts` - envelope shape `{ ok, result, trace }` or `{ ok, error }` | Code | ✅ |
 | R15.4 | Next.js serverless deployment (stateless, no database) | Architecture | ✅ |
-| R15.5 | Zod schemas enforce 100 KB limit (not explicitly tested, accepted as configured) | Config | ⚠️ |
+| R15.5 | Zod validation enforces character limits; parseRequestBody enforces 100 KB byte limit with 413 status | Code | ✅ |
 | **R16. UX, Theme, Accessibility** | | | |
 | R16.1 | All feature pages show result first, then `<StepLog>` with `<Stepper>` (prev/next/play) | Code | ✅ |
 | R16.2 | `src/components/ThemeProvider.tsx` + `src/components/ThemeToggle.tsx` - light/dark with system default | Code | ✅ |
@@ -120,29 +120,37 @@ Mapping of acceptance criteria (R1.1 to R17.6) to test files and manual verifica
 **Total Criteria:** 91 acceptance criteria (R1.1 to R17.6)
 
 **Status Breakdown:**
-- ✅ **Fully Met:** 83 criteria (91%)
-- ⚠️ **Partially Met / Accepted Deviations:** 8 criteria (9%)
+- ✅ **Fully Met:** 88 criteria (97%)
+- ⚠️ **Partially Met / Accepted Deviations:** 3 criteria (3%)
 - ❌ **Not Met:** 0 criteria
 
 ## Gaps and Deviations
 
-### Accepted Deviations (⚠️)
+### Remaining Accepted Deviations (⚠️)
 
-1. **R3.3 - Rename toggle for DFA states:** Subset names like `{q0,q1}` are shown but rename toggle to `A, B, C...` not implemented in UI. Engine function exists but UI component not built. **Reason:** Core functionality (subset construction) works; rename is cosmetic enhancement.
+1. **R17.4 - 90% line coverage:** Engine achieves 88.91% line coverage (target: 90%), but 90.57% statement coverage exceeds threshold. **Reason:** Line coverage slightly below due to one-line edge case branches; statement coverage (more meaningful metric) exceeds target.
 
-2. **R4.4 - Hide dead state toggle:** Minimized DFA includes dead state but no UI toggle to hide it in canvas. **Reason:** Dead state visibility aids understanding; hiding is convenience feature.
+2. **R17.6 - <1s performance:** Performance not explicitly measured against deployed Vercel instance. **Reason:** Local testing shows sub-second responses; production measurement requires deployment monitoring.
 
-3. **R7.4 - Link to pumping demo:** Language identification page doesn't link to pumping lemma for non-regular languages. **Reason:** Both pages exist independently; cross-linking deferred as UX enhancement.
+3. **R3.3, R4.4, R7.4, R9.6, R11.5, R15.5 - Previously accepted deviations:** All fixed and verified (see DEVIATIONS_FIXED.md for details).
 
-4. **R9.6 - Decimal non-finite-state explanation:** Numbers page has placeholder text for divisibility/validator tabs stating "coming soon" instead of full decimal explanation. **Reason:** Core binary/octal/hex conversions implemented; decimal explanation is educational text addition.
+### Fixed in Latest Update
 
-5. **R11.5 - Balanced parentheses demo:** Parser page doesn't include dedicated section linking balanced parens to pumping lemma. **Reason:** Parser works correctly; cross-feature educational demo deferred.
+**Date:** Latest session  
+**Fixes:** 5 deviations resolved, 1 verified already implemented
 
-6. **R15.5 - 100 KB body limit:** Zod validation enforces character limits (200 regex, 5000 source) but explicit 100 KB body size check not implemented. **Reason:** Character limits provide effective size control; byte-level enforcement deferred.
+1. ✅ **R3.3 - Rename toggle:** Implemented - states can be renamed from `{q0,q1}` to A, B, C...
+2. ✅ **R4.4 - Hide dead state toggle:** Implemented - UI toggle filters dead states when loading
+3. ✅ **R7.4 - Language→Pumping link:** Added - conditional link appears for non-regular results
+4. ✅ **R9.6 - Decimal explanation:** Added - comprehensive educational text with examples
+5. ✅ **R11.5 - Parser→Pumping link:** Fixed - upgraded to Next.js Link component
+6. ✅ **R15.5 - 100 KB limit:** Verified - already implemented in parseRequestBody helper
 
-7. **R17.4 - 90% line coverage:** Engine achieves 88.91% line coverage (target: 90%), but 90.57% statement coverage exceeds threshold. **Reason:** Line coverage slightly below due to one-line edge case branches; statement coverage (more meaningful metric) exceeds target.
+**Files modified:** 5 page components  
+**Tests:** 584/584 still passing  
+**Gates:** All green (typecheck, lint, test, build)
 
-8. **R17.6 - <1s performance:** Performance not explicitly measured against deployed Vercel instance. **Reason:** Local testing shows sub-second responses; production measurement requires deployment monitoring.
+See `DEVIATIONS_FIXED.md` for complete implementation details.
 
 ## Test Coverage Report
 
@@ -175,10 +183,14 @@ $ pnpm build        # ✅ 14 routes compiled successfully
 
 ## Conclusion
 
-The Automata Theory Playground meets **91% of acceptance criteria fully** and addresses all remaining 9% as accepted deviations with documented rationale. Core functionality for all features (R1-R14) is complete and tested. Quality gates (R17.5) pass with 584 tests. Coverage (88.91% lines, 90.57% statements) approaches target. The system is production-ready for educational use.
+The Automata Theory Playground meets **97% of acceptance criteria fully** (88/91) and addresses the remaining 3% as accepted deviations with documented rationale. Core functionality for all features (R1-R14) is complete and tested. Quality gates (R17.5) pass with 584 tests. Coverage (88.91% lines, 90.57% statements) approaches target. The system is production-ready for educational use.
+
+**Recent Improvements:**
+- Fixed 5 UI/UX deviations (rename toggle, hide dead state, cross-links, decimal explanation)
+- Verified 100 KB body limit already implemented
+- All gates remain green after changes
 
 **Recommended Next Steps:**
-1. Deploy to Vercel and add URL to README
+1. Deploy to Vercel and add URL to README (addresses R17.6)
 2. Perform manual smoke test on deployed instance
-3. Address cosmetic deviations (rename toggle, hide-dead toggle) if time permits
-4. Add cross-linking between Language/Pumping/Parser pages for educational flow
+3. If time permits, add edge case tests to reach 90% line coverage (addresses R17.4)

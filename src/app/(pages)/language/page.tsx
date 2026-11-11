@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Layout } from '@/components/Layout';
 import { AutomatonEditor } from '@/components/editor/AutomatonEditor';
 import { useAutomatonStore } from '@/lib/store';
@@ -178,6 +179,17 @@ export default function LanguagePage() {
             <div className="text-xs text-gray-500 dark:text-gray-500 italic">
               Note: This is an upper bound classification based on the input form
             </div>
+
+            {result.class !== 'Regular (Type 3)' && (
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <Link
+                  href="/pumping"
+                  className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                  → Use Pumping Lemma to prove non-regularity
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </div>

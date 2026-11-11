@@ -273,7 +273,54 @@ export const useAutomatonStore = create<AutomatonStore>((set, get) => ({
     }));
   },
 
-  importAutomaton: (automaton: Automaton) => {
+  importAutomaton: (data: unknown) => {
+    // Handle different JSON formats
+    let automaton: Automaton;
+    
+    if (typeof data !== 'object' || data === null) {
+      throw new Error('Invalid JSON: expected an object');
+    }
+    
+    const obj = data as Record<string, unknown>;
+    
+    // Check if it's our canonical format
+    if ('kind' in obj && 'states' in obj && 'alphabet' in obj) {
+      automaton = obj as unknown as Automaton;
+    }
+    // Handle alternative format: { type, states, alphabet, initialState, acceptStates, transitions: { state: { symbol: target } } }
+    else if ('type' in obj || 'initialState' in obj || 'acceptStates' in obj) {
+      const type = (obj.type as string) || 'DFA';
+      const kind = type.toUpperCase() === 'NFA' ? 'NFA' : 'DFA';
+      const states = (obj.states as string[]) || [];
+      const alphabet = (obj.alphabet as string[]) || [];
+      const start = (obj.initialState as string) || (obj.start as string) || '';
+      const accepting = (obj.acceptStates as string[]) || (obj.accepting as string[]) || [];
+      
+      // Convert transitions object to array
+      const transitions: Transition[] = [];
+      const transObj = obj.transitions as Record<string, Record<string, string | string[]>>;
+      
+      if (transObj && typeof transObj === 'object') {
+        for (const from in transObj) {
+          for (const symbol in transObj[from]) {
+            const to = transObj[from][symbol];
+            if (typeof to === 'string') {
+              transitions.push({ from, symbol, to });
+            } else if (Array.isArray(to)) {
+              for (const target of to) {
+                transitions.push({ from, symbol, to: target });
+              }
+            }
+          }
+        }
+      }
+      
+      automaton = { kind, states, alphabet, start, accepting, transitions };
+    }
+    else {
+      throw new Error('Invalid JSON format. Expected canonical format with "kind", "states", "alphabet", "start", "accepting", "transitions"');
+    }
+    
     set({ automaton: { ...automaton } });
   },
 

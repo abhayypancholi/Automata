@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Layout } from '@/components/Layout';
 import { LoadingView } from '@/components/LoadingView';
 
@@ -237,12 +238,12 @@ export default function ParserPage() {
           <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
             The language of balanced parentheses is context-free (Type 2) but not regular (Type 3).
           </p>
-          <a
+          <Link
             href="/pumping"
             className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
           >
             → Test with pumping lemma
-          </a>
+          </Link>
         </div>
       </div>
     </Layout>

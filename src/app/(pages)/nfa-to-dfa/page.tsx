@@ -27,6 +27,7 @@ export default function NfaToDfaPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState<number>(0);
+  const [useSimpleNames, setUseSimpleNames] = useState(false);
 
   const handleConvert = async () => {
     if (!automaton) {
@@ -63,8 +64,45 @@ export default function NfaToDfaPage() {
 
   const handleLoadDfa = () => {
     if (result?.dfa) {
-      importAutomaton(result.dfa);
+      let automaton = result.dfa;
+      
+      // Optionally rename states to simple A, B, C... format
+      if (useSimpleNames) {
+        const stateMapping = new Map<string, string>();
+        automaton.states.forEach((state, index) => {
+          // Generate A, B, C, ..., Z, AA, AB, ...
+          const name = indexToLetters(index);
+          stateMapping.set(state, name);
+        });
+        
+        automaton = {
+          ...automaton,
+          states: automaton.states.map(s => stateMapping.get(s)!),
+          start: stateMapping.get(automaton.start)!,
+          accepting: automaton.accepting.map(s => stateMapping.get(s)!),
+          transitions: automaton.transitions.map(t => ({
+            from: stateMapping.get(t.from)!,
+            symbol: t.symbol,
+            to: stateMapping.get(t.to)!,
+          })),
+        };
+      }
+      
+      importAutomaton(automaton);
     }
+  };
+
+  // Helper to convert index to letters: 0 -> A, 1 -> B, ..., 25 -> Z, 26 -> AA, etc.
+  const indexToLetters = (index: number): string => {
+    let result = '';
+    let num = index;
+    while (true) {
+      result = String.fromCharCode(65 + (num % 26)) + result;
+      num = Math.floor(num / 26);
+      if (num === 0) break;
+      num--;
+    }
+    return result;
   };
 
   const trace = result?.trace || [];
@@ -131,12 +169,24 @@ export default function NfaToDfaPage() {
                   </span>
                 </div>
 
-                <button
-                  onClick={handleLoadDfa}
-                  className="px-3 py-1.5 text-sm rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 transition-colors"
-                >
-                  Load DFA into editor
-                </button>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={handleLoadDfa}
+                    className="px-3 py-1.5 text-sm rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 transition-colors"
+                  >
+                    Load DFA into editor
+                  </button>
+
+                  <label className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <input
+                      type="checkbox"
+                      checked={useSimpleNames}
+                      onChange={(e) => setUseSimpleNames(e.target.checked)}
+                      className="mr-2"
+                    />
+                    Use simple names (A, B, C...)
+                  </label>
+                </div>
               </div>
             </div>
 

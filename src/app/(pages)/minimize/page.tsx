@@ -71,15 +71,41 @@ export default function MinimizePage() {
 
   const handleLoadMinimal = () => {
     if (result?.minimal) {
-      // Optionally filter out dead state based on toggle
+      let automaton = result.minimal;
+      
+      // Filter out dead state if toggle is off
       if (!showDeadState) {
-        // Simple heuristic: dead state has self-loops on all symbols
-        const filtered = { ...result.minimal };
-        // For now just load as-is; dead state filtering could be added
-        importAutomaton(filtered);
-      } else {
-        importAutomaton(result.minimal);
+        // Identify dead states: states where all outgoing transitions lead to themselves
+        // and they are not accepting states
+        const deadStates = automaton.states.filter(state => {
+          const isAccepting = automaton.accepting.includes(state);
+          if (isAccepting) return false;
+          
+          // Check if all transitions from this state loop back to itself
+          const outgoingTransitions = automaton.transitions.filter(t => t.from === state);
+          
+          // If it has transitions to other states, it's not a pure dead state
+          return outgoingTransitions.length > 0 &&
+                 outgoingTransitions.every(t => t.to === state);
+        });
+        
+        if (deadStates.length > 0) {
+          // Filter out dead states
+          automaton = {
+            ...automaton,
+            states: automaton.states.filter(s => !deadStates.includes(s)),
+            transitions: automaton.transitions.filter(
+              t => !deadStates.includes(t.from) && !deadStates.includes(t.to)
+            ),
+            // If start was dead (shouldn't happen), keep first state
+            start: deadStates.includes(automaton.start) 
+              ? automaton.states.find(s => !deadStates.includes(s)) || automaton.start
+              : automaton.start,
+          };
+        }
       }
+      
+      importAutomaton(automaton);
     }
   };
 
