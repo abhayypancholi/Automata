@@ -32,13 +32,10 @@ export async function POST(request: Request) {
     }
 
     return successResponse({
-      dfa: result.value.minimal,
+      minimal: result.value.minimal,
       trace: result.value.trace,
       alreadyMinimal: result.value.alreadyMinimal,
-      stateMapping: Array.from(result.value.mapping.entries()).map(([original, minimal]) => ({
-        original,
-        minimal,
-      })),
+      mapping: Object.fromEntries(result.value.mapping.entries()),
     });
   } catch (error) {
     return NextResponse.json(
