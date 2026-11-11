@@ -77,7 +77,7 @@ export default function RegexPage() {
         return;
       }
 
-      setThompsonResult(data.data);
+      setThompsonResult(data.result);
       setThompsonStep(0);
     } catch (err) {
       setThompsonError(err instanceof Error ? err.message : 'Network error');
@@ -110,7 +110,7 @@ export default function RegexPage() {
         return;
       }
 
-      setArdenResult(data.data);
+      setArdenResult(data.result);
       setArdenStep(0);
     } catch (err) {
       setArdenError(err instanceof Error ? err.message : 'Network error');

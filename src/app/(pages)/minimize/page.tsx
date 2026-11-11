@@ -60,7 +60,7 @@ export default function MinimizePage() {
         return;
       }
 
-      setResult(data.data);
+      setResult(data.result);
       setCurrentStep(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error');

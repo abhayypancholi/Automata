@@ -42,7 +42,7 @@ export default function ParserPage() {
         return;
       }
 
-      setResult(data.data);
+      setResult(data.result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error');
     } finally {

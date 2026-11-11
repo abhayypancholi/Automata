@@ -34,7 +34,7 @@ export default function NumbersPage() {
         return;
       }
 
-      setResult(data.data.output);
+      setResult(data.result.output);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error');
     } finally {
