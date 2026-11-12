@@ -33,6 +33,7 @@ export function CanvasEditor() {
   const automaton = useAutomatonStore((state) => state.automaton);
   const { setStart, toggleAccepting } = useAutomatonStore();
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [showGuide, setShowGuide] = useState(false);
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<StateNodeData>>(
     []
   );
@@ -72,6 +73,69 @@ export function CanvasEditor() {
 
   return (
     <div className="space-y-4">
+      {/* Usage Guide */}
+      <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <button
+          onClick={() => setShowGuide(!showGuide)}
+          className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-gray-750 rounded-lg transition-colors"
+        >
+          <span className="font-medium text-gray-900 dark:text-gray-100">
+            📖 Canvas Usage Guide
+          </span>
+          <svg
+            className={`w-5 h-5 text-gray-500 transition-transform ${showGuide ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        
+        {showGuide && (
+          <div className="px-4 pb-4 space-y-3 text-sm text-gray-600 dark:text-gray-400">
+            <div className="space-y-2">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100">🖱️ Navigation</h4>
+              <ul className="space-y-1 ml-4">
+                <li>• <strong>Pan:</strong> Click and drag on empty space</li>
+                <li>• <strong>Zoom:</strong> Scroll wheel or use +/- controls</li>
+                <li>• <strong>Fit View:</strong> Click the fit icon in bottom-right controls</li>
+              </ul>
+            </div>
+            
+            <div className="space-y-2">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100">🎯 Node Operations</h4>
+              <ul className="space-y-1 ml-4">
+                <li>• <strong>Select:</strong> Click on a state node</li>
+                <li>• <strong>Move:</strong> Drag selected node to reposition</li>
+                <li>• <strong>Set Start:</strong> Select node → click "Set as Start" button</li>
+                <li>• <strong>Toggle Accepting:</strong> Select node → click "Toggle Accepting"</li>
+              </ul>
+            </div>
+            
+            <div className="space-y-2">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100">🔗 Edge Drawing</h4>
+              <ul className="space-y-1 ml-4">
+                <li>• Edges are drawn with <strong>smooth Bezier curves</strong></li>
+                <li>• <strong>Self-loops</strong> appear as circular arcs above the node</li>
+                <li>• <strong>Multiple edges</strong> between nodes are automatically offset</li>
+                <li>• Edge labels show transition symbols with clean backgrounds</li>
+              </ul>
+            </div>
+            
+            <div className="space-y-2">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100">💡 Tips</h4>
+              <ul className="space-y-1 ml-4">
+                <li>• Use the <strong>Table view</strong> to add/remove states and transitions</li>
+                <li>• Canvas auto-arranges nodes in a grid by default</li>
+                <li>• Drag nodes to create your preferred layout</li>
+                <li>• The minimap (bottom-left) shows full graph overview</li>
+              </ul>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Canvas controls */}
       {selectedNode && (
         <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950 p-3">
@@ -116,7 +180,7 @@ export function CanvasEditor() {
         maxZoom={2}
         attributionPosition="bottom-left"
         defaultEdgeOptions={{
-          type: 'default',
+          type: 'smoothstep',
           animated: false,
           style: { 
             stroke: '#374151',

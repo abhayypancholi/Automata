@@ -5,7 +5,7 @@ import { parseRequestBody, successResponse, errorResponse } from '@/app/api/help
 
 const RegexToNfaRequestSchema = z.object({
   regex: z.string().max(200, 'Regex too long (max 200 characters)'),
-  alphabet: z.array(z.string()).max(10, 'Too many alphabet symbols (max 10)'),
+  alphabet: z.array(z.string()).max(10, 'Too many alphabet symbols (max 10)').optional().default([]),
 });
 
 export async function POST(request: Request) {

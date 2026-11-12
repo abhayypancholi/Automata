@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ThemeToggle } from './ThemeToggle';
 import type { ReactNode } from 'react';
 
 const navigation = [
@@ -57,7 +56,6 @@ export function Layout({ children }: LayoutProps) {
                   );
                 })}
               </nav>
-              <ThemeToggle />
             </div>
           </div>
         </div>
