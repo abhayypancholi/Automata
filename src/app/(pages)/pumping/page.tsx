@@ -29,7 +29,7 @@ interface PumpingResult {
 export default function PumpingPage() {
   const automaton = useAutomatonStore((state) => state.automaton);
   const [mode, setMode] = useState<PumpingMode>('nonregular');
-  const [languageId, setLanguageId] = useState('a_n_b_n');
+  const [languageId, setLanguageId] = useState('anbn');
   const [pumpingLength, setPumpingLength] = useState('3');
   const [testString, setTestString] = useState('');
   const [result, setResult] = useState<PumpingResult | null>(null);
@@ -45,7 +45,7 @@ export default function PumpingPage() {
     try {
       const body =
         mode === 'nonregular'
-          ? { mode: 'nonregular', languageId, p: parseInt(pumpingLength, 10) }
+          ? { mode: 'non-regular', languageId, p: parseInt(pumpingLength, 10) }
           : { mode: 'regular', automaton, string: testString };
 
       const response = await fetch('/api/pumping', {
@@ -121,9 +121,12 @@ export default function PumpingPage() {
                 onChange={(e) => setLanguageId(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-gray-900 dark:text-gray-100"
               >
-                <option value="a_n_b_n">a^n b^n</option>
+                <option value="anbn">aⁿbⁿ</option>
                 <option value="palindromes">Palindromes</option>
-                <option value="balanced_parens">Balanced Parentheses</option>
+                <option value="equal-ab">Equal a and b</option>
+                <option value="wwR">wwᴿ (even-length palindromes)</option>
+                <option value="ww">ww (string repeated twice)</option>
+                <option value="anbncn">aⁿbⁿcⁿ</option>
               </select>
             </div>
 

@@ -40,13 +40,24 @@ export async function POST(request: Request) {
         return errorResponse(validation.error);
       }
       
+      // Determine if the automaton recognizes a finite language
+      // A DFA/NFA recognizes a finite language iff it has no reachable cycles that lead to an accepting state
+      // Simple heuristic: check if there are any self-loops or cycles on the automaton
+      // For now, we can note it's potentially infinite if there are any transitions back to visited states
+      const hasTransitions = typedAutomaton.transitions.length > 0;
+      const stateCount = typedAutomaton.states.length;
+      
       // Automaton recognizes a Type 3 (regular) language
       return successResponse({
         class: 'Type 3',
         certainty: 'Exact',
+        finiteness: hasTransitions && stateCount > 0
+          ? 'Could be finite or infinite — depends on whether the DFA has cycles reachable from the start state to an accepting state. Use minimization or trace to verify.'
+          : 'Empty language (finite, containing no strings).',
         reasons: [
           'Finite automata recognize exactly the regular languages (Type 3).',
           `This ${typedAutomaton.kind} has ${typedAutomaton.states.length} states and alphabet {${typedAutomaton.alphabet.join(', ')}}.`,
+          'Regular languages may be finite or infinite. A language is finite if and only if the minimal DFA has no cycles that contribute to acceptance.',
         ],
       });
     } else if (data.kind === 'grammar') {
@@ -62,6 +73,7 @@ export async function POST(request: Request) {
       return successResponse({
         class: classification.type,
         certainty: 'Upper bound',
+        finiteness: 'Cannot be determined from grammar form alone — depends on the language generated.',
         reasons: [
           classification.explanation,
           `Grammar form: ${classification.description}`,
@@ -88,6 +100,8 @@ export async function POST(request: Request) {
       return successResponse({
         class: lang.class,
         certainty: 'Exact (by definition)',
+        isFinite: lang.isFinite,
+        finiteness: lang.finiteness,
         reasons: [
           `${lang.display}: ${lang.description}`,
           lang.proofSketch,

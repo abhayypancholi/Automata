@@ -42,7 +42,7 @@ function isRightLinear(prod: Production): boolean {
   // Check: terminal* followed by at most one nonterminal at the end
   for (let i = 0; i < right.length; i++) {
     const symbol = right[i]!;
-    const isNT = /^[A-Z]$/.test(symbol);
+    const isNT = /^[A-Z][A-Z0-9]*$/.test(symbol);
     
     if (isNT) {
       // Nonterminal must be at the end
@@ -76,7 +76,7 @@ function isLeftLinear(prod: Production): boolean {
   // Check: at most one nonterminal at the beginning, followed by terminal*
   for (let i = 0; i < right.length; i++) {
     const symbol = right[i]!;
-    const isNT = /^[A-Z]$/.test(symbol);
+    const isNT = /^[A-Z][A-Z0-9]*$/.test(symbol);
     
     if (isNT) {
       // Nonterminal must be at the beginning
@@ -98,7 +98,7 @@ function isType3(grammar: Grammar): { isType3: boolean; subtype?: 'right-linear'
   // Type 3 requires single nonterminal on left side (this is CFG requirement too)
   for (const prod of grammar.productions) {
     const leftSymbols = prod.left.trim().split(/\s+/);
-    if (leftSymbols.length !== 1 || !/^[A-Z]$/.test(leftSymbols[0]!)) {
+    if (leftSymbols.length !== 1 || !/^[A-Z][A-Z0-9]*$/.test(leftSymbols[0]!)) {
       return { isType3: false };
     }
   }
@@ -129,7 +129,7 @@ function isType2(grammar: Grammar): boolean {
       return false;
     }
     const symbol = leftSymbols[0]!;
-    if (!/^[A-Z]$/.test(symbol)) {
+    if (!/^[A-Z][A-Z0-9]*$/.test(symbol)) {
       return false;
     }
   }

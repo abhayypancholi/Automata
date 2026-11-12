@@ -16,6 +16,8 @@ export interface NamedLanguage {
   display: string;
   description: string;
   class: 'Type 0' | 'Type 1' | 'Type 2' | 'Type 3';
+  isFinite: boolean;
+  finiteness: string;
   proofSketch: string;
   membership: (s: string) => boolean;
   witness: (p: number) => string;
@@ -31,6 +33,8 @@ const anbn: NamedLanguage = {
   display: 'aⁿbⁿ',
   description: 'Strings with equal numbers of a and b, with all as before all bs',
   class: 'Type 2',
+  isFinite: false,
+  finiteness: 'Infinite — for every n ≥ 0, the string aⁿbⁿ is in the language.',
   proofSketch: 'Not regular (pumping lemma fails). Context-free: S -> aSb | ε',
   membership: (s: string): boolean => {
     // Count as and bs
@@ -66,6 +70,8 @@ const anbncn: NamedLanguage = {
   display: 'aⁿbⁿcⁿ',
   description: 'Strings with equal numbers of a, b, and c, in that order',
   class: 'Type 1',
+  isFinite: false,
+  finiteness: 'Infinite — for every n ≥ 1, the string aⁿbⁿcⁿ is in the language.',
   proofSketch: 'Not context-free (pumping lemma for CFLs fails). Context-sensitive: requires counting three symbols.',
   membership: (s: string): boolean => {
     let aCount = 0;
@@ -104,6 +110,8 @@ const wwR: NamedLanguage = {
   display: 'wwᴿ',
   description: 'Even-length palindromes: strings followed by their reverse',
   class: 'Type 2',
+  isFinite: false,
+  finiteness: 'Infinite — for every string w, wwᴿ is in the language.',
   proofSketch: 'Not regular. Context-free: S -> aSa | bSb | ε',
   membership: (s: string): boolean => {
     if (s.length % 2 !== 0) return false;
@@ -127,6 +135,8 @@ const ww: NamedLanguage = {
   display: 'ww',
   description: 'Strings consisting of two identical halves',
   class: 'Type 1',
+  isFinite: false,
+  finiteness: 'Infinite — for every string w, ww is in the language.',
   proofSketch: 'Not context-free (requires comparing two distant substrings). Context-sensitive.',
   membership: (s: string): boolean => {
     if (s.length % 2 !== 0) return false;
@@ -147,6 +157,8 @@ const palindromes: NamedLanguage = {
   display: 'Palindromes',
   description: 'Strings that read the same forwards and backwards',
   class: 'Type 2',
+  isFinite: false,
+  finiteness: 'Infinite — every individual character and ε are palindromes, plus arbitrarily long ones.',
   proofSketch: 'Not regular. Context-free: S -> aSa | bSb | a | b | ε',
   membership: (s: string): boolean => {
     return s === s.split('').reverse().join('');
@@ -165,6 +177,8 @@ const aStarBStar: NamedLanguage = {
   display: 'a*b*',
   description: 'Any number of as followed by any number of bs',
   class: 'Type 3',
+  isFinite: false,
+  finiteness: 'Infinite — ε, a, b, aa, ab, bb, aaa, … are all in the language.',
   proofSketch: 'Regular: recognized by a simple 3-state DFA',
   membership: (s: string): boolean => {
     let seenB = false;
@@ -207,6 +221,8 @@ const equalAB: NamedLanguage = {
   display: 'Equal a and b',
   description: 'Strings with equal numbers of a and b (in any order)',
   class: 'Type 2',
+  isFinite: false,
+  finiteness: 'Infinite — ε, ab, ba, aabb, abab, … are all in the language.',
   proofSketch: 'Not regular (pumping fails). Context-free: can be recognized by PDA counting the difference.',
   membership: (s: string): boolean => {
     let aCount = 0;
@@ -237,6 +253,8 @@ const evenA: NamedLanguage = {
   display: 'Even number of a',
   description: 'Strings over {a,b} with an even number of as',
   class: 'Type 3',
+  isFinite: false,
+  finiteness: 'Infinite — ε, aa, b, bb, aaaa, … all belong (arbitrarily long strings with even-count a).',
   proofSketch: 'Regular: 2-state DFA counting parity of as',
   membership: (s: string): boolean => {
     let aCount = 0;
@@ -280,6 +298,8 @@ const binaryDiv3: NamedLanguage = {
   display: 'Binary divisible by 3',
   description: 'Binary strings (MSB first) whose value is divisible by 3',
   class: 'Type 3',
+  isFinite: false,
+  finiteness: 'Infinite — 0, 11, 110, 1001, … (multiples of 3 in binary) go on forever.',
   proofSketch: 'Regular: 3-state DFA with states representing remainders mod 3',
   membership: (s: string): boolean => {
     if (s === '') return true; // 0 is divisible by 3
@@ -331,6 +351,8 @@ const anBmNleqM: NamedLanguage = {
   display: 'aⁿbᵐ (n ≤ m)',
   description: 'Strings with as followed by bs, where number of as ≤ number of bs',
   class: 'Type 2',
+  isFinite: false,
+  finiteness: 'Infinite — b, ab, abb, aabb, … are all in the language.',
   proofSketch: 'Not regular. Context-free: S -> aSb | Sb | b | ε',
   membership: (s: string): boolean => {
     let aCount = 0;
@@ -364,6 +386,8 @@ const aPrimePower: NamedLanguage = {
   display: 'aᵖ (p prime)',
   description: 'Strings of as where the length is a prime number',
   class: 'Type 0',
+  isFinite: false,
+  finiteness: 'Infinite — there are infinitely many primes (aa, aaa, aaaaa, aaaaaaa, …).',
   proofSketch: 'Not context-free (proven by Bar-Hillel). Requires number-theoretic computation.',
   membership: (s: string): boolean => {
     // Check all characters are 'a'
@@ -414,8 +438,16 @@ export const namedLanguages: NamedLanguage[] = [
 ];
 
 /**
- * Get a language by ID
+ * Get a language by ID (supports both canonical IDs and legacy underscore variants)
  */
 export function getLanguage(id: string): NamedLanguage | undefined {
-  return namedLanguages.find(lang => lang.id === id);
+  // Normalize legacy ID variants
+  const idMap: Record<string, string> = {
+    'a_n_b_n': 'anbn',
+    'a_n_b_n_c_n': 'anbncn',
+    'ww_r': 'wwR',
+    'balanced_parens': 'anbn', // balanced parens is similar to anbn for pumping demo
+  };
+  const resolvedId = idMap[id] ?? id;
+  return namedLanguages.find(lang => lang.id === resolvedId);
 }

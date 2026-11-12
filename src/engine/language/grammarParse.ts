@@ -40,6 +40,67 @@ function normalizeEpsilon(symbol: string): string {
 }
 
 /**
+ * Tokenize a string into symbols, handling mixed uppercase/lowercase
+ * Examples:
+ * - "aSb" → ['a', 'S', 'b']
+ * - "a S b" → ['a', 'S', 'b']
+ * - "aabb" → ['a', 'a', 'b', 'b']
+ * - "AB" → ['A', 'B']
+ */
+function tokenizeSymbols(str: string): string[] {
+  // First, split by whitespace to get space-separated tokens
+  const tokens = str.split(/\s+/).filter(s => s.length > 0);
+  
+  const result: string[] = [];
+  
+  for (const token of tokens) {
+    // If token is a single character, add it directly
+    if (token.length === 1) {
+      result.push(normalizeEpsilon(token));
+      continue;
+    }
+    
+    // For multi-character tokens, split by case boundaries
+    // "aSb" → ['a', 'S', 'b']
+    // "ABC" → ['A', 'B', 'C']
+    // "abc" → ['a', 'b', 'c']
+    let current = '';
+    let lastWasUpper = /[A-Z]/.test(token[0] || '');
+    
+    for (let i = 0; i < token.length; i++) {
+      const char = token[i] || '';
+      const isUpper = /[A-Z]/.test(char);
+      
+      // Detect case change
+      if (i > 0 && isUpper !== lastWasUpper) {
+        // Push accumulated chars and start new symbol
+        if (current) {
+          result.push(normalizeEpsilon(current));
+        }
+        current = char;
+        lastWasUpper = isUpper;
+      } else {
+        // Same case or special char - for nonterminals (uppercase), each letter is separate
+        // for terminals (lowercase), group them
+        if (isUpper && current.length > 0) {
+          // Uppercase letters are always separate symbols
+          result.push(normalizeEpsilon(current));
+          current = char;
+        } else {
+          current += char;
+        }
+      }
+    }
+    
+    if (current) {
+      result.push(normalizeEpsilon(current));
+    }
+  }
+  
+  return result;
+}
+
+/**
  * Parse a single production line
  * Format: A -> alpha | beta
  */
@@ -121,8 +182,8 @@ function parseProductionLine(line: string, lineNumber: number): Result<Productio
       };
     }
     
-    // Parse symbols in alternative
-    const symbols = alt.split(/\s+/).map(normalizeEpsilon);
+    // Parse symbols in alternative using the tokenizer
+    const symbols = tokenizeSymbols(alt);
     
     productions.push({
       left,
@@ -169,7 +230,10 @@ export function parseGrammar(text: string): Result<Grammar> {
   const terminals = new Set<string>();
   
   for (const prod of productions) {
-    nonterminals.add(prod.left);
+    // Add all symbols from left side as nonterminals
+    for (const sym of prod.left.trim().split(/\s+/)) {
+      if (sym) nonterminals.add(sym);
+    }
     
     for (const symbol of prod.right) {
       if (symbol === 'ε') {

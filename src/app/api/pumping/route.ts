@@ -7,6 +7,11 @@ import { parseRequestBody, successResponse, errorResponse } from '@/app/api/help
 
 const PumpingRequestSchema = z.discriminatedUnion('mode', [
   z.object({
+    mode: z.literal('nonregular'),
+    languageId: z.string(),
+    p: z.number().int().min(1).max(50),
+  }),
+  z.object({
     mode: z.literal('non-regular'),
     languageId: z.string(),
     p: z.number().int().min(1).max(50),
@@ -27,7 +32,7 @@ export async function POST(request: Request) {
   const data = parseResult.data;
 
   try {
-    if (data.mode === 'non-regular') {
+    if (data.mode === 'non-regular' || data.mode === 'nonregular') {
       const result = pumpNonRegular(data.languageId, data.p);
       
       if (!result.ok) {
