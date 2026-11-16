@@ -380,10 +380,10 @@ export function extractAnnotations(ast: ProgramNode, sourceLines: string[]): Ann
         comment: line.trailingComment,
         attachedTo,
       });
-    } else if (!line.statement && sourceLines[i] && sourceLines[i].trim().startsWith('#')) {
-      // Standalone comment
+    } else if (!line.statement) {
+      // Check for standalone comment
       const sourceLine = sourceLines[i];
-      if (sourceLine) {
+      if (sourceLine && sourceLine.trim().startsWith('#')) {
         annotations.push({
           type: 'standalone',
           line: lineNum,

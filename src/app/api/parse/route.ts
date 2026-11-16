@@ -84,7 +84,7 @@ export async function POST(request: Request) {
         unitResult = { ok: false, errors: [unitCheck.error] };
       }
     } catch (e) {
-      unitResult = { ok: false, errors: [{ code: 'INTERNAL_ERROR', message: String(e) }] };
+      unitResult = { ok: false, errors: [{ code: 'UNKNOWN_ERROR', message: String(e) }] };
     }
   } else {
     parseErrors = [parseResult.error];

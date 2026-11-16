@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       {
         ok: false,
         error: {
-          code: 'INTERNAL_ERROR',
+          code: 'UNKNOWN_ERROR',
           message: error instanceof Error ? error.message : 'Unknown error',
         },
       },
