@@ -221,6 +221,14 @@ export default function ParserPage() {
               </div>
             )}
 
+            {activeTab === 'tree' && !result.ast && (
+              <div className="rounded-lg bg-gray-50 dark:bg-gray-800 p-6 text-center">
+                <p className="text-gray-600 dark:text-gray-400">
+                  No AST available. Please parse valid source code first.
+                </p>
+              </div>
+            )}
+
             {activeTab === 'derivation' && result.ast && (
               <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
                 <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
@@ -236,6 +244,14 @@ export default function ParserPage() {
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-500 mt-3">
                   Each step shows the leftmost nonterminal being expanded in the derivation.
+                </p>
+              </div>
+            )}
+
+            {activeTab === 'derivation' && !result.ast && (
+              <div className="rounded-lg bg-gray-50 dark:bg-gray-800 p-6 text-center">
+                <p className="text-gray-600 dark:text-gray-400">
+                  No AST available. Please parse valid source code first.
                 </p>
               </div>
             )}
@@ -289,6 +305,16 @@ export default function ParserPage() {
                 </p>
               </div>
             )}
+
+            {activeTab === 'annotations' && !result.ast && (
+              <div className="rounded-lg bg-gray-50 dark:bg-gray-800 p-6 text-center">
+                <p className="text-gray-600 dark:text-gray-400">
+                  No AST available. Please parse valid source code first.
+                </p>
+              </div>
+            )}
+
+            {activeTab === 'units' && result.units && (
               <div className="space-y-4">
                 <div className={`rounded-lg border p-4 ${result.units.ok ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950' : 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950'}`}>
                   <div className={`text-lg font-semibold ${result.units.ok ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
@@ -359,8 +385,6 @@ export default function ParserPage() {
                 )}
               </div>
             )}
-
-            {activeTab === 'units' && result.units && (
           </div>
         )}
 

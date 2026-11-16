@@ -11,6 +11,11 @@ import { StepLog } from '@/components/trace/StepLog';
 type PumpingMode = 'nonregular' | 'regular';
 
 interface PumpingResult {
+  languageId?: string;
+  p?: number;
+  witness?: string;
+  allDecompositionsFail?: boolean;
+  explanation?: string;
   decompositions?: Array<{
     x: string;
     y: string;
@@ -188,37 +193,126 @@ export default function PumpingPage() {
 
         {result && result.decompositions && (
           <div className="space-y-6">
+            {/* Language Information for non-regular mode */}
+            {mode === 'nonregular' && result.languageId && (
+              <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950 p-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  Language Information
+                </h3>
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <span className="font-semibold text-gray-700 dark:text-gray-300">Language: </span>
+                    <span className="text-gray-900 dark:text-gray-100 font-mono">
+                      L = &#123; {(() => {
+                        switch(result.languageId) {
+                          case 'anbn': return 'aⁿbⁿ | n ≥ 0';
+                          case 'anbncn': return 'aⁿbⁿcⁿ | n ≥ 0';
+                          case 'palindromes': return 'w | w = wᴿ';
+                          case 'wwR': return 'wwᴿ | w ∈ {a,b}*';
+                          case 'ww': return 'ww | w ∈ {a,b}*';
+                          case 'equal-ab': return 'w | #ₐ(w) = #ᵦ(w)';
+                          default: return '...';
+                        }
+                      })()} &#125;
+                    </span>
+                  </div>
+                  {result.p && (
+                    <div>
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">Pumping Length: </span>
+                      <span className="text-gray-900 dark:text-gray-100">p = {result.p}</span>
+                    </div>
+                  )}
+                  {result.witness && (
+                    <div>
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">Witness String: </span>
+                      <span className="font-mono text-gray-900 dark:text-gray-100">{result.witness}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
             <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                Decompositions
+                Valid Decompositions
               </h3>
               <div className="space-y-3">
-                {result.decompositions.map((decomp, idx) => (
-                  <div
-                    key={idx}
-                    className={`rounded p-3 ${
-                      decomp.verdict === 'fail'
-                        ? 'bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800'
-                        : 'bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800'
-                    }`}
-                  >
-                    <div className="font-mono text-sm">
-                      x = {decomp.x || 'ε'}, y = {decomp.y}, z = {decomp.z || 'ε'}
-                    </div>
+                {result.decompositions.map((decomp, idx) => {
+                  const failsForI = decomp.counterexample?.i;
+                  const pumpedString = failsForI !== undefined 
+                    ? decomp.x + decomp.y.repeat(failsForI) + decomp.z
+                    : null;
+                  
+                  return (
                     <div
-                      className={`text-sm mt-1 font-medium ${
+                      key={idx}
+                      className={`rounded p-3 ${
                         decomp.verdict === 'fail'
-                          ? 'text-red-800 dark:text-red-200'
-                          : 'text-green-800 dark:text-green-200'
+                          ? 'bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800'
+                          : 'bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800'
                       }`}
                     >
-                      {decomp.verdict === 'fail' ? '✗ Fails' : '✓ Passes'}
-                      {decomp.counterexample && ` (i=${decomp.counterexample.i})`}
+                      <div className="space-y-2">
+                        <div className="font-mono text-sm">
+                          <span className="text-gray-600 dark:text-gray-400">x = </span>
+                          <span className="text-gray-900 dark:text-gray-100">"{decomp.x || 'ε'}"</span>
+                          <span className="text-gray-600 dark:text-gray-400">, y = </span>
+                          <span className="text-gray-900 dark:text-gray-100">"{decomp.y}"</span>
+                          <span className="text-gray-600 dark:text-gray-400">, z = </span>
+                          <span className="text-gray-900 dark:text-gray-100">"{decomp.z || 'ε'}"</span>
+                        </div>
+                        
+                        {mode === 'nonregular' && decomp.verdict === 'fail' && pumpedString && (
+                          <div className="text-sm">
+                            <div className="text-gray-700 dark:text-gray-300">
+                              <span className="font-semibold">Pumping Test (i={failsForI}):</span>
+                            </div>
+                            <div className="font-mono text-xs bg-gray-100 dark:bg-gray-900 p-2 rounded mt-1">
+                              xy<sup>{failsForI}</sup>z = "{pumpedString}"
+                            </div>
+                            <div className="text-red-700 dark:text-red-300 mt-1">
+                              ✗ This string does not belong to the language
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div
+                          className={`text-sm font-medium ${
+                            decomp.verdict === 'fail'
+                              ? 'text-red-800 dark:text-red-200'
+                              : 'text-green-800 dark:text-green-200'
+                          }`}
+                        >
+                          {decomp.verdict === 'fail' 
+                            ? `✗ Fails pumping test` 
+                            : '✓ Passes pumping test'}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
+              
+              {mode === 'nonregular' && result.allDecompositionsFail && (
+                <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded">
+                  <div className="text-sm text-yellow-900 dark:text-yellow-100">
+                    <span className="font-semibold">Conclusion:</span> Every valid decomposition fails the pumping condition. 
+                    This demonstrates that the language does not satisfy the pumping lemma for regular languages.
+                  </div>
+                </div>
+              )}
             </div>
+
+            {result.explanation && (
+              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Explanation
+                </h3>
+                <p className="text-sm text-gray-900 dark:text-gray-100">
+                  {result.explanation}
+                </p>
+              </div>
+            )}
 
             {trace.length > 0 && (
               <div>
