@@ -248,40 +248,40 @@ export function generateDerivation(ast: ProgramNode): string[] {
 
   for (let i = 0; i < ast.lines.length; i++) {
     const line = ast.lines[i];
-    if (line.statement) {
-      if (i === 0) {
-        steps.push('Program → Line');
-        steps.push('Line → Statement');
-      } else {
-        steps.push(`Program → Program NEWLINE Line`);
-        steps.push('Line → Statement');
-      }
+    if (!line || !line.statement) continue;
+    
+    if (i === 0) {
+      steps.push('Program → Line');
+      steps.push('Line → Statement');
+    } else {
+      steps.push(`Program → Program NEWLINE Line`);
+      steps.push('Line → Statement');
+    }
 
-      const stmt = line.statement;
-      if (stmt.kind === 'Equation') {
-        steps.push('Statement → Equation');
-        steps.push('Equation → Lhs = Expr : UnitExpr Flags');
+    const stmt = line.statement;
+    if (stmt.kind === 'Equation') {
+      steps.push('Statement → Equation');
+      steps.push('Equation → Lhs = Expr : UnitExpr Flags');
 
-        // Add the actual expansion
-        const lhsStr = stmt.lhs.kind === 'IdentLhs' ? stmt.lhs.name : `d${stmt.lhs.variable}/dt`;
-        const exprStr = stringifyExpr(stmt.expr);
-        const unitStr = stringifyUnit(stmt.unit);
-        const flagsStr = stmt.flags && stmt.flags.length > 0 
-          ? ` (${stmt.flags.map(f => f.parts.join('-')).join(', ')})`
-          : '';
-        
-        steps.push(`${lhsStr} = ${exprStr} : ${unitStr}${flagsStr}`);
-      } else if (stmt.kind === 'ParamDecl') {
-        steps.push('Statement → ParamDecl');
-        steps.push('ParamDecl → IDENT : UnitExpr Flags');
+      // Add the actual expansion
+      const lhsStr = stmt.lhs.kind === 'IdentLhs' ? stmt.lhs.name : `d${stmt.lhs.variable}/dt`;
+      const exprStr = stringifyExpr(stmt.expr);
+      const unitStr = stringifyUnit(stmt.unit);
+      const flagsStr = stmt.flags && stmt.flags.length > 0 
+        ? ` (${stmt.flags.map(f => f.parts.join('-')).join(', ')})`
+        : '';
+      
+      steps.push(`${lhsStr} = ${exprStr} : ${unitStr}${flagsStr}`);
+    } else if (stmt.kind === 'ParamDecl') {
+      steps.push('Statement → ParamDecl');
+      steps.push('ParamDecl → IDENT : UnitExpr Flags');
 
-        const unitStr = stringifyUnit(stmt.unit);
-        const flagsStr = stmt.flags && stmt.flags.length > 0
-          ? ` (${stmt.flags.map(f => f.parts.join('-')).join(', ')})`
-          : '';
-        
-        steps.push(`${stmt.name} : ${unitStr}${flagsStr}`);
-      }
+      const unitStr = stringifyUnit(stmt.unit);
+      const flagsStr = stmt.flags && stmt.flags.length > 0
+        ? ` (${stmt.flags.map(f => f.parts.join('-')).join(', ')})`
+        : '';
+      
+      steps.push(`${stmt.name} : ${unitStr}${flagsStr}`);
     }
   }
 
@@ -359,6 +359,8 @@ export function extractAnnotations(ast: ProgramNode, sourceLines: string[]): Ann
 
   for (let i = 0; i < ast.lines.length; i++) {
     const line = ast.lines[i];
+    if (!line) continue;
+    
     const lineNum = i + 1;
 
     if (line.trailingComment) {
@@ -378,13 +380,16 @@ export function extractAnnotations(ast: ProgramNode, sourceLines: string[]): Ann
         comment: line.trailingComment,
         attachedTo,
       });
-    } else if (!line.statement && sourceLines[i]?.trim().startsWith('#')) {
+    } else if (!line.statement && sourceLines[i] && sourceLines[i].trim().startsWith('#')) {
       // Standalone comment
-      annotations.push({
-        type: 'standalone',
-        line: lineNum,
-        comment: sourceLines[i].trim().slice(1).trim(),
-      });
+      const sourceLine = sourceLines[i];
+      if (sourceLine) {
+        annotations.push({
+          type: 'standalone',
+          line: lineNum,
+          comment: sourceLine.trim().slice(1).trim(),
+        });
+      }
     }
   }
 

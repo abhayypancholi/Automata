@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     return errorResponse({
-      code: 'INTERNAL_ERROR',
+      code: 'UNEXPECTED_ERROR',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
