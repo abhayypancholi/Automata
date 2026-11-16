@@ -111,3 +111,45 @@ export function buildAllValidators(): Record<string, Result<Automaton>> {
     hexWithPrefix: buildHexWithPrefixValidator(),
   };
 }
+
+/**
+ * Validate a number string
+ */
+export interface ValidateResult {
+  valid: boolean;
+  regex: string;
+  dfa: Automaton | null;
+}
+
+export function validateNumber(value: string, base: 'binary' | 'octal' | 'hex', withPrefix: boolean): ValidateResult {
+  let regex: string;
+  let dfaResult: Result<Automaton>;
+  
+  if (base === 'binary') {
+    regex = withPrefix ? '0[bB][01]+' : '[01]+';
+    dfaResult = withPrefix ? buildBinaryWithPrefixValidator() : buildBinaryValidator();
+  } else if (base === 'octal') {
+    regex = withPrefix ? '0[oO][0-7]+' : '[0-7]+';
+    dfaResult = withPrefix ? buildOctalWithPrefixValidator() : buildOctalValidator();
+  } else {
+    regex = withPrefix ? '0[xX][0-9a-fA-F]+' : '[0-9a-fA-F]+';
+    dfaResult = withPrefix ? buildHexWithPrefixValidator() : buildHexValidator();
+  }
+  
+  if (!dfaResult.ok) {
+    return {
+      valid: false,
+      regex,
+      dfa: null,
+    };
+  }
+  
+  const dfa = dfaResult.value;
+  const valid = validate(dfa, value);
+  
+  return {
+    valid,
+    regex,
+    dfa,
+  };
+}

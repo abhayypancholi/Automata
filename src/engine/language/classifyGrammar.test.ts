@@ -218,3 +218,16 @@ S -> ε`;
     expect(classification.type).not.toBe('Type 0');
   });
 });
+
+  it('classifies grammar with multiple non-terminals on LHS as Type 0', () => {
+    // Bug fix test: AB -> a should be Type 0, not Type 2
+    const text = `S -> AB
+AB -> a`;
+    const parseResult = parseGrammar(text);
+    expect(parseResult.ok).toBe(true);
+    if (!parseResult.ok) return;
+    
+    const classification = classifyGrammar(parseResult.value);
+    expect(classification.type).toBe('Type 0');
+    expect(classification.description).toContain('Unrestricted');
+  });

@@ -39,7 +39,21 @@ export async function POST(request: Request) {
         return errorResponse(result.error);
       }
       
-      return successResponse(result.value);
+      // Transform decompositions to match frontend expectations
+      const transformedResult = {
+        ...result.value,
+        decompositions: result.value.decompositions.map(decomp => ({
+          x: decomp.x,
+          y: decomp.y,
+          z: decomp.z,
+          verdict: decomp.failingI !== null && decomp.failingI !== undefined ? 'fail' : 'pass',
+          counterexample: decomp.failingI !== null && decomp.failingI !== undefined 
+            ? { i: decomp.failingI, result: false }
+            : undefined,
+        })),
+      };
+      
+      return successResponse(transformedResult);
     } else {
       const typedAutomaton = data.automaton as import('@/engine/automaton').Automaton;
       

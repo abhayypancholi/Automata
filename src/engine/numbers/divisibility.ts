@@ -90,3 +90,31 @@ export function getRemainder(n: number, binary: string): number {
   
   return currentState;
 }
+
+/**
+ * Test divisibility with detailed results
+ */
+export interface DivisibilityResult {
+  valid: boolean; // Whether input is valid binary
+  remainder: number;
+  divisible: boolean;
+}
+
+export function testDivisibility(binary: string, n: number): DivisibilityResult {
+  // Validate input
+  if (!/^[01]+$/.test(binary) && binary !== '') {
+    return {
+      valid: false,
+      remainder: -1,
+      divisible: false,
+    };
+  }
+  
+  const remainder = getRemainder(n, binary);
+  
+  return {
+    valid: true,
+    remainder,
+    divisible: remainder === 0,
+  };
+}

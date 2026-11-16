@@ -201,6 +201,36 @@ export default function LanguagePage() {
 
         {result && (
           <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 space-y-4">
+            {/* Language notation (for named languages) */}
+            {inputKind === 'named' && selectedNamed && (
+              <div className="rounded-lg bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-800 p-4">
+                <div className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+                  Language Notation:
+                </div>
+                <div className="font-mono text-lg text-blue-900 dark:text-blue-100">
+                  L = &#123; {(() => {
+                    switch(selectedNamed.id) {
+                      case 'anbn': return 'aⁿbⁿ | n ≥ 0';
+                      case 'anbncn': return 'aⁿbⁿcⁿ | n ≥ 0';
+                      case 'wwR': return 'wwᴿ | w ∈ {a,b}*';
+                      case 'ww': return 'ww | w ∈ {a,b}*';
+                      case 'palindromes': return 'w | w = wᴿ, w ∈ {a,b}*';
+                      case 'a*b*': return 'aⁱbʲ | i,j ≥ 0';
+                      case 'equal-ab': return 'w | #ₐ(w) = #ᵦ(w), w ∈ {a,b}*';
+                      case 'even-a': return 'w | #ₐ(w) is even, w ∈ {a,b}*';
+                      case 'binary-div-3': return 'w | val(w) ≡ 0 (mod 3), w ∈ {0,1}*';
+                      case 'anBm-n-leq-m': return 'aⁿbᵐ | 0 ≤ n ≤ m';
+                      case 'a-prime-power': return 'aᵖ | p is prime';
+                      default: return selectedNamed.display;
+                    }
+                  })()} &#125;
+                </div>
+                <div className="text-xs text-blue-700 dark:text-blue-300 mt-2">
+                  {selectedNamed.description}
+                </div>
+              </div>
+            )}
+            
             {/* Main classification badge */}
             <div className={`rounded-lg border p-4 ${CLASS_COLOR[result.class] ?? 'border-gray-200'}`}>
               <div className="text-sm font-medium opacity-70">Classification</div>

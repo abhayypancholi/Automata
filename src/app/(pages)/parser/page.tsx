@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { Layout } from '@/components/Layout';
 import { LoadingView } from '@/components/LoadingView';
 
+import { generateParseTree, generateDerivation, extractAnnotations, renderTreeAsText, type TreeNode, type Annotation } from '@/lib/parserHelpers';
+
 type ParserTab = 'tokens' | 'tree' | 'derivation' | 'units' | 'annotations';
 
 interface ParseResult {
@@ -13,7 +15,16 @@ interface ParseResult {
     ast?: unknown;
     errors?: Array<{ code: string; message: string; line: number; column: number }>;
   }>;
-  units?: { ok: boolean };
+  ast?: any; // Full AST
+  units?: { 
+    ok: boolean; 
+    errors?: Array<{ 
+      code: string; 
+      message: string; 
+      line?: number; 
+      column?: number;
+    }>;
+  };
 }
 
 export default function ParserPage() {
@@ -196,54 +207,212 @@ export default function ParserPage() {
               </div>
             )}
 
-            {activeTab === 'tree' && (
-              <div className="rounded-lg bg-gray-50 dark:bg-gray-800 p-6 text-center">
-                <p className="text-gray-600 dark:text-gray-400">
-                  Parse tree visualization coming in polish phase
+            {activeTab === 'tree' && result.ast && (
+              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  Parse Tree
+                </h3>
+                <pre className="font-mono text-xs text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-900 p-4 rounded overflow-x-auto whitespace-pre">
+                  {renderTreeAsText(generateParseTree(result.ast))}
+                </pre>
+                <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+                  This tree shows the hierarchical structure of your program as parsed by the grammar.
                 </p>
               </div>
             )}
 
-            {activeTab === 'derivation' && (
-              <div className="rounded-lg bg-gray-50 dark:bg-gray-800 p-6 text-center">
-                <p className="text-gray-600 dark:text-gray-400">
-                  Leftmost derivation display coming in polish phase
+            {activeTab === 'derivation' && result.ast && (
+              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  Leftmost Derivation
+                </h3>
+                <div className="space-y-2">
+                  {generateDerivation(result.ast).map((step, idx) => (
+                    <div key={idx} className="font-mono text-sm">
+                      <span className="text-gray-500 dark:text-gray-500 mr-3">{idx + 1}.</span>
+                      <span className="text-gray-900 dark:text-gray-100">{step}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-500 mt-3">
+                  Each step shows the leftmost nonterminal being expanded in the derivation.
                 </p>
+              </div>
+            )}
+
+            {activeTab === 'annotations' && result.ast && (
+              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  Comment Annotations
+                </h3>
+                {(() => {
+                  const annotations = extractAnnotations(result.ast, source.split('\n'));
+                  return annotations.length > 0 ? (
+                    <div className="space-y-3">
+                      {annotations.map((ann, idx) => (
+                        <div key={idx} className={`rounded p-3 ${
+                          ann.type === 'trailing'
+                            ? 'bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800'
+                            : 'bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700'
+                        }`}>
+                          <div className="flex items-start justify-between mb-1">
+                            <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                              Line {ann.line}
+                              {ann.type === 'trailing' && ann.attachedTo && (
+                                <span className="ml-2 text-blue-600 dark:text-blue-400">
+                                  (attached to: {ann.attachedTo})
+                                </span>
+                              )}
+                            </span>
+                            <span className={`text-xs px-2 py-0.5 rounded ${
+                              ann.type === 'trailing'
+                                ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                                : 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                            }`}>
+                              {ann.type}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-900 dark:text-gray-100">
+                            {ann.comment}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      No comments found in the source code.
+                    </div>
+                  );
+                })()}
+                <p className="text-xs text-gray-500 dark:text-gray-500 mt-3">
+                  Comments can be trailing (on the same line as a statement) or standalone (on their own line).
+                </p>
+              </div>
+            )}
+              <div className="space-y-4">
+                <div className={`rounded-lg border p-4 ${result.units.ok ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950' : 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950'}`}>
+                  <div className={`text-lg font-semibold ${result.units.ok ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+                    {result.units.ok ? '✓ All units consistent' : '✗ Unit errors found'}
+                  </div>
+                </div>
+                
+                {result.units.errors && result.units.errors.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Detailed Errors:
+                    </h3>
+                    {result.units.errors.map((err, idx) => {
+                      const lineNum = err.line ?? 0;
+                      const lineText = lineNum > 0 ? source.split('\n')[lineNum - 1] || '' : '';
+                      
+                      // Extract dimension information from the message
+                      // Message format: "Unit mismatch: expression has dimension X, but expected Y"
+                      const dimensionMatch = err.message.match(/expression has dimension ([^,]+), but expected (.+)$/);
+                      const actualDim = dimensionMatch?.[1] || 'unknown';
+                      const expectedDim = dimensionMatch?.[2] || 'unknown';
+                      
+                      return (
+                        <div key={idx} className="rounded-lg border border-red-200 dark:border-red-800 bg-white dark:bg-gray-800 p-4">
+                          <div className="space-y-2">
+                            <div className="flex items-start justify-between">
+                              <div className="text-sm font-medium text-red-700 dark:text-red-400">
+                                Line {lineNum}
+                              </div>
+                              <div className="text-xs font-mono text-gray-500 dark:text-gray-500">
+                                {err.code}
+                              </div>
+                            </div>
+                            
+                            {lineText && (
+                              <div className="font-mono text-sm bg-gray-50 dark:bg-gray-900 p-2 rounded">
+                                <div className="text-gray-700 dark:text-gray-300">{lineText}</div>
+                                {err.column && (
+                                  <div className="text-red-600 dark:text-red-400">
+                                    {' '.repeat(Math.max(0, err.column - 1))}^
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            
+                            {err.code === 'UNIT_MISMATCH' && dimensionMatch ? (
+                              <div className="space-y-1 text-sm">
+                                <div className="text-red-700 dark:text-red-300 font-medium">
+                                  Unit Mismatch:
+                                </div>
+                                <div className="grid grid-cols-[auto,1fr] gap-x-3 gap-y-1 text-gray-700 dark:text-gray-300">
+                                  <span className="font-semibold">Actual:</span>
+                                  <span className="font-mono">{actualDim}</span>
+                                  <span className="font-semibold">Expected:</span>
+                                  <span className="font-mono">{expectedDim}</span>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-sm text-red-700 dark:text-red-300">
+                                {err.message}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === 'units' && result.units && (
-              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-                <div className={`text-lg font-semibold ${result.units.ok ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
-                  {result.units.ok ? '✓ All units consistent' : '✗ Unit errors found'}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'annotations' && (
-              <div className="rounded-lg bg-gray-50 dark:bg-gray-800 p-6 text-center">
-                <p className="text-gray-600 dark:text-gray-400">
-                  Comment annotations display coming in polish phase
-                </p>
-              </div>
-            )}
           </div>
         )}
 
         {/* Balanced parentheses demo section */}
-        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-950 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            Demonstration: Balanced Parentheses
-          </h3>
-          <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-            The language of balanced parentheses is context-free (Type 2) but not regular (Type 3).
-          </p>
-          <Link
-            href="/pumping"
-            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            → Test with pumping lemma
-          </Link>
+        <div className="space-y-6">
+          <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-950 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              Demonstration: Balanced Parentheses
+            </h3>
+            <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+              The language of balanced parentheses is context-free (Type 2) but not regular (Type 3).
+            </p>
+            <Link
+              href="/pumping"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              → Test with pumping lemma
+            </Link>
+          </div>
+
+          {/* Reserved Identifiers Info */}
+          <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              Reserved Identifiers
+            </h3>
+            <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+              The following identifiers are reserved unit symbols and cannot be used as variable names:
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm font-mono">
+              <div className="space-y-1">
+                <div className="font-semibold text-gray-700 dark:text-gray-300">Base Units:</div>
+                <div className="text-gray-600 dark:text-gray-400">m, meter, metre, kg, kilogram, s, second, A, ampere, amp, K, kelvin, mol, mole, cd, candela</div>
+              </div>
+              <div className="space-y-1">
+                <div className="font-semibold text-gray-700 dark:text-gray-300">Derived Units:</div>
+                <div className="text-gray-600 dark:text-gray-400">Hz, hertz, N, newton, Pa, pascal, J, joule, W, watt, C, coulomb, V, volt, ohm, Ω, S, siemens, F, farad</div>
+              </div>
+              <div className="space-y-1">
+                <div className="font-semibold text-gray-700 dark:text-gray-300">Prefixed Units:</div>
+                <div className="text-gray-600 dark:text-gray-400">pico (p-), nano (n-), micro (u-), milli (m-), kilo (k-), mega (M-) combined with: m, s, A, V, F, Hz, ohm</div>
+                <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">Examples: mV, ms, nA, uF, kohm, Mohm</div>
+              </div>
+              <div className="space-y-1">
+                <div className="font-semibold text-gray-700 dark:text-gray-300">Alternative Names:</div>
+                <div className="text-gray-600 dark:text-gray-400">Use variable names like: current, voltage, resistance, time_constant, etc.</div>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-3">
+              <strong>Tip:</strong> If you see a <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">RESERVED_NAME</code> error, 
+              choose a different variable name that describes the physical quantity instead.
+            </p>
+          </div>
         </div>
       </div>
     </Layout>

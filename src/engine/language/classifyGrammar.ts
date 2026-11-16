@@ -124,11 +124,30 @@ function isType3(grammar: Grammar): { isType3: boolean; subtype?: 'right-linear'
 function isType2(grammar: Grammar): boolean {
   for (const prod of grammar.productions) {
     // Left side must be a single nonterminal
+    // The parser tokenizes "AB" as ['A', 'B'] and stores as "A B"
+    // So we need to check that after splitting, there's only ONE symbol
     const leftSymbols = prod.left.trim().split(/\s+/);
     if (leftSymbols.length !== 1) {
       return false;
     }
+    
+    // Also check that the single symbol is a nonterminal
     const symbol = leftSymbols[0]!;
+    
+    // For Type 2, the left side must be a SINGLE nonterminal
+    // This means a single uppercase letter, optionally followed by digits (like S, S1, S2)
+    // BUT "AB" (two uppercase letters without space) should be parsed as ["AB"] by split
+    // and we need to reject it. Let's check if it contains multiple uppercase letters
+    // that represent multiple nonterminals stuck together
+    
+    // If the symbol has multiple uppercase letters in sequence, it's multiple nonterminals
+    const uppercaseCount = (symbol.match(/[A-Z]/g) || []).length;
+    if (uppercaseCount > 1) {
+      // Multiple uppercase letters means multiple nonterminals like "AB"
+      return false;
+    }
+    
+    // Finally check it matches nonterminal pattern
     if (!/^[A-Z][A-Z0-9]*$/.test(symbol)) {
       return false;
     }

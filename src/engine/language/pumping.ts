@@ -48,6 +48,10 @@ export interface PumpingResult {
   allDecompositionsFail?: boolean;
   /** Explanation text */
   explanation: string;
+  /** Language size information */
+  languageSize?: 'finite' | 'infinite';
+  /** Language description */
+  languageDescription?: string;
 }
 
 /**
@@ -167,6 +171,8 @@ export function pumpNonRegular(languageId: string, p: number): Result<PumpingRes
       decompositions,
       allDecompositionsFail: allFail,
       explanation,
+      languageSize: lang.isFinite ? 'finite' : 'infinite',
+      languageDescription: lang.description,
     },
   };
 }
