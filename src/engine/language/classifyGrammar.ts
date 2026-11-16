@@ -2,10 +2,13 @@
  * Grammar classification (Chomsky hierarchy)
  * 
  * Classifies grammars by form (upper bound on language class):
- * - Type 3 (Regular): Right-linear or left-linear
- * - Type 2 (Context-free): Single nonterminal on left
- * - Type 1 (Context-sensitive): Non-contracting (|left| <= |right|)
- * - Type 0 (Unrestricted): All others
+ * - Type 3 (Regular): Right-linear or left-linear (ALL productions)
+ * - Type 2 (Context-free): Single nonterminal on left (ALL productions)
+ * - Type 1 (Context-sensitive): Non-contracting |left| <= |right| (ALL productions)
+ * - Type 0 (Unrestricted): Everything else
+ * 
+ * Classification is from most restrictive to least restrictive.
+ * ALL productions must satisfy the condition for the grammar to be that type.
  * 
  * Note: This classifies the GRAMMAR FORM, not the language.
  * A Type 2 grammar may generate a Type 3 language.
@@ -22,34 +25,55 @@ export interface GrammarClassification {
 }
 
 /**
+ * Check if a symbol is a nonterminal
+ * Nonterminals: single uppercase letter, possibly followed by digits (S, S1, A2, etc.)
+ */
+function isNonterminal(symbol: string): boolean {
+  return /^[A-Z](\d+)?$/.test(symbol);
+}
+
+/**
+ * Check if a symbol is epsilon
+ */
+function isEpsilon(symbol: string): boolean {
+  return symbol === 'ε' || symbol === 'eps';
+}
+
+/**
  * Check if a production is right-linear
- * Right-linear: A -> a B | a | ε
- * (terminal* nonterminal | terminal+ | ε)
+ * Right-linear forms:
+ * - A -> ε
+ * - A -> a1 a2 ... an (terminals only)
+ * - A -> a1 a2 ... an B (terminals followed by ONE nonterminal)
  */
 function isRightLinear(prod: Production): boolean {
   const { right } = prod;
   
-  // ε is allowed
-  if (right.length === 1 && right[0] === 'ε') {
+  // Empty or epsilon production is allowed
+  if (right.length === 0 || (right.length === 1 && isEpsilon(right[0]!))) {
     return true;
   }
   
-  // Empty (other than ε) not allowed
-  if (right.length === 0) {
+  // Find nonterminals in the right side
+  let nonterminalCount = 0;
+  let lastNonterminalIndex = -1;
+  
+  for (let i = 0; i < right.length; i++) {
+    const symbol = right[i]!;
+    if (isNonterminal(symbol)) {
+      nonterminalCount++;
+      lastNonterminalIndex = i;
+    }
+  }
+  
+  // At most one nonterminal allowed
+  if (nonterminalCount > 1) {
     return false;
   }
   
-  // Check: terminal* followed by at most one nonterminal at the end
-  for (let i = 0; i < right.length; i++) {
-    const symbol = right[i]!;
-    const isNT = /^[A-Z][A-Z0-9]*$/.test(symbol);
-    
-    if (isNT) {
-      // Nonterminal must be at the end
-      if (i !== right.length - 1) {
-        return false;
-      }
-    }
+  // If there's a nonterminal, it must be the LAST symbol
+  if (nonterminalCount === 1 && lastNonterminalIndex !== right.length - 1) {
+    return false;
   }
   
   return true;
@@ -57,32 +81,64 @@ function isRightLinear(prod: Production): boolean {
 
 /**
  * Check if a production is left-linear
- * Left-linear: A -> B a | a | ε
- * (nonterminal terminal* | terminal+ | ε)
+ * Left-linear forms:
+ * - A -> ε
+ * - A -> a1 a2 ... an (terminals only)
+ * - A -> B a1 a2 ... an (ONE nonterminal followed by terminals)
  */
 function isLeftLinear(prod: Production): boolean {
   const { right } = prod;
   
-  // ε is allowed
-  if (right.length === 1 && right[0] === 'ε') {
+  // Empty or epsilon production is allowed
+  if (right.length === 0 || (right.length === 1 && isEpsilon(right[0]!))) {
     return true;
   }
   
-  // Empty (other than ε) not allowed
-  if (right.length === 0) {
+  // Find nonterminals in the right side
+  let nonterminalCount = 0;
+  let firstNonterminalIndex = -1;
+  
+  for (let i = 0; i < right.length; i++) {
+    const symbol = right[i]!;
+    if (isNonterminal(symbol)) {
+      nonterminalCount++;
+      if (firstNonterminalIndex === -1) {
+        firstNonterminalIndex = i;
+      }
+    }
+  }
+  
+  // At most one nonterminal allowed
+  if (nonterminalCount > 1) {
     return false;
   }
   
-  // Check: at most one nonterminal at the beginning, followed by terminal*
-  for (let i = 0; i < right.length; i++) {
-    const symbol = right[i]!;
-    const isNT = /^[A-Z][A-Z0-9]*$/.test(symbol);
+  // If there's a nonterminal, it must be the FIRST symbol
+  if (nonterminalCount === 1 && firstNonterminalIndex !== 0) {
+    return false;
+  }
+  
+  return true;
+}
+
+/**
+ * Check if ALL productions have a single nonterminal on the left side
+ * This is required for Type 2 and Type 3
+ */
+function hasAllSingleNonterminalLeft(grammar: Grammar): boolean {
+  for (const prod of grammar.productions) {
+    const leftSymbols = prod.left.trim().split(/\s+/).filter(s => s);
     
-    if (isNT) {
-      // Nonterminal must be at the beginning
-      if (i !== 0) {
-        return false;
-      }
+    // Must have exactly ONE symbol on the left
+    if (leftSymbols.length !== 1) {
+      return false;
+    }
+    
+    const leftSymbol = leftSymbols[0]!;
+    
+    // That one symbol must be a nonterminal
+    if (!isNonterminal(leftSymbol)) {
+      return false;
     }
   }
   
@@ -91,99 +147,83 @@ function isLeftLinear(prod: Production): boolean {
 
 /**
  * Check if grammar is Type 3 (regular)
- * All productions must be right-linear OR all must be left-linear (not mixed)
- * AND each production must have a single nonterminal on the left side
+ * Requirements (ALL must be true):
+ * 1. ALL productions have single nonterminal on left
+ * 2. ALL productions are right-linear OR ALL are left-linear (not mixed)
  */
 function isType3(grammar: Grammar): { isType3: boolean; subtype?: 'right-linear' | 'left-linear' } {
-  // Type 3 requires single nonterminal on left side (this is CFG requirement too)
-  for (const prod of grammar.productions) {
-    const leftSymbols = prod.left.trim().split(/\s+/);
-    if (leftSymbols.length !== 1 || !/^[A-Z][A-Z0-9]*$/.test(leftSymbols[0]!)) {
-      return { isType3: false };
-    }
+  // First check: all productions must have single nonterminal on left
+  if (!hasAllSingleNonterminalLeft(grammar)) {
+    return { isType3: false };
   }
   
+  // Check if ALL productions are right-linear
   const allRightLinear = grammar.productions.every(isRightLinear);
-  const allLeftLinear = grammar.productions.every(isLeftLinear);
-  
   if (allRightLinear) {
     return { isType3: true, subtype: 'right-linear' };
   }
   
+  // Check if ALL productions are left-linear
+  const allLeftLinear = grammar.productions.every(isLeftLinear);
   if (allLeftLinear) {
     return { isType3: true, subtype: 'left-linear' };
   }
   
+  // Mixed or neither
   return { isType3: false };
 }
 
 /**
  * Check if grammar is Type 2 (context-free)
- * All productions have single nonterminal on left side
+ * Requirement: ALL productions have single nonterminal on left side
+ * (No restriction on right side)
  */
 function isType2(grammar: Grammar): boolean {
-  for (const prod of grammar.productions) {
-    // Left side must be a single nonterminal
-    // The parser tokenizes "AB" as ['A', 'B'] and stores as "A B"
-    // So we need to check that after splitting, there's only ONE symbol
-    const leftSymbols = prod.left.trim().split(/\s+/);
-    if (leftSymbols.length !== 1) {
-      return false;
-    }
-    
-    // Also check that the single symbol is a nonterminal
-    const symbol = leftSymbols[0]!;
-    
-    // For Type 2, the left side must be a SINGLE nonterminal
-    // This means a single uppercase letter, optionally followed by digits (like S, S1, S2)
-    // BUT "AB" (two uppercase letters without space) should be parsed as ["AB"] by split
-    // and we need to reject it. Let's check if it contains multiple uppercase letters
-    // that represent multiple nonterminals stuck together
-    
-    // If the symbol has multiple uppercase letters in sequence, it's multiple nonterminals
-    const uppercaseCount = (symbol.match(/[A-Z]/g) || []).length;
-    if (uppercaseCount > 1) {
-      // Multiple uppercase letters means multiple nonterminals like "AB"
-      return false;
-    }
-    
-    // Finally check it matches nonterminal pattern
-    if (!/^[A-Z][A-Z0-9]*$/.test(symbol)) {
-      return false;
-    }
-  }
-  return true;
+  return hasAllSingleNonterminalLeft(grammar);
 }
 
 /**
  * Check if grammar is Type 1 (context-sensitive / non-contracting)
- * For all productions: |left| <= |right|
- * Exception: S -> ε allowed if S doesn't appear on any right side
+ * Requirements (ALL productions must satisfy):
+ * - |left| <= |right| (non-contracting)
+ * - Exception: S -> ε allowed ONLY if S doesn't appear on any right side
  */
 function isType1(grammar: Grammar): boolean {
   const startSymbol = grammar.startSymbol;
   
-  // Check if start symbol appears on right side
+  // Check if start symbol appears on any right side
   const startAppearsOnRight = grammar.productions.some(prod =>
-    prod.right.includes(startSymbol)
+    prod.right.some(symbol => symbol === startSymbol)
   );
   
+  // Validate EVERY production
   for (const prod of grammar.productions) {
+    // Calculate left side length (number of symbols)
     const leftSymbols = prod.left.trim().split(/\s+/).filter(s => s);
     const leftLength = leftSymbols.length;
-    const rightLength = prod.right.filter(s => s !== 'ε').length;
     
-    // Handle ε productions
-    if (prod.right.length === 1 && prod.right[0] === 'ε') {
-      // S -> ε allowed if S doesn't appear on right
-      if (leftLength === 1 && leftSymbols[0] === startSymbol && !startAppearsOnRight) {
+    // Calculate right side length (excluding epsilon)
+    const rightSymbols = prod.right.filter(s => !isEpsilon(s));
+    const rightLength = rightSymbols.length;
+    
+    // Check for epsilon production
+    const isEpsilonProduction = prod.right.length === 1 && isEpsilon(prod.right[0]!);
+    
+    if (isEpsilonProduction) {
+      // S -> ε is allowed ONLY if S is the start symbol AND doesn't appear on right
+      const isStartSymbol = leftLength === 1 && leftSymbols[0] === startSymbol;
+      
+      if (isStartSymbol && !startAppearsOnRight) {
+        // This epsilon production is allowed
         continue;
+      } else {
+        // Epsilon production not allowed - violates Type 1
+        return false;
       }
-      // Other ε productions violate Type 1
-      return false;
     }
     
-    // Non-contracting: |left| <= |right|
+    // Non-contracting rule: |left| <= |right|
+    // This detects contracting productions where left is longer than right
     if (leftLength > rightLength) {
       return false;
     }
@@ -194,11 +234,10 @@ function isType1(grammar: Grammar): boolean {
 
 /**
  * Classify grammar by form
+ * Check from most restrictive to least restrictive
  */
 export function classifyGrammar(grammar: Grammar): GrammarClassification {
-  // Check from most restrictive to least restrictive
-  
-  // Type 3 (Regular)
+  // Type 3 (Regular) - Most restrictive
   const type3Check = isType3(grammar);
   if (type3Check.isType3) {
     return {
@@ -230,11 +269,11 @@ export function classifyGrammar(grammar: Grammar): GrammarClassification {
     };
   }
   
-  // Type 0 (Unrestricted)
+  // Type 0 (Unrestricted) - Least restrictive
   return {
     type: 'Type 0',
     description: 'Unrestricted',
-    explanation: 'This grammar is unrestricted (no constraints on production form). This is an upper bound on the language class.',
+    explanation: 'This grammar is unrestricted (has contracting productions or other violations of context-sensitive constraints). This is an upper bound on the language class.',
     isUpperBound: true,
   };
 }
